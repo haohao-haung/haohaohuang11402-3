@@ -1574,10 +1574,6 @@
               </div>
             ` : `
               <div class="mt-12 flex flex-col items-center gap-4 w-full relative z-10">
-                <button onclick="setState({gameState: 'bossIntro'})" class="flex items-center justify-center gap-2 text-sm md:text-lg font-black text-[#faf6ed] bg-[#3e2723] hover:bg-[#8b2626] transition-all px-6 py-3 border border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none w-full max-w-sm rounded">
-                  <i class="ph-fill ph-skull"></i> [捷徑] 直接迎戰亂字魔王
-                </button>
-                
                 ${state.clearedLevels.length > 0 ? `
                   <button onclick="setState({clearedLevels: [], score: 0, recentlyCleared: null})" class="flex items-center justify-center gap-2 text-sm md:text-lg font-black text-[#3e2723] hover:text-[#faf6ed] hover:bg-[#3e2723] transition-all bg-[#faf6ed]/90 backdrop-blur px-6 py-3 border border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none w-full max-w-sm rounded">
                     <i class="ph-bold ph-sword"></i> 重置修練，再次拔劍
@@ -1720,13 +1716,8 @@
 
         content = `
           <div class="min-h-screen bg-black flex flex-col items-center relative overflow-hidden pt-6 pb-36">
-            <div class="fixed top-2 left-2 md:top-4 md:left-4 z-[60]">
-              <button onclick="window.triggerKillShortcut()" 
-                      class="bg-[#8b2626] text-[#faf6ed] px-3 py-2 rounded shadow-md border-2 border-[#5c4033] text-xs md:text-sm font-black transition-all hover:bg-[#b8860b] hover:text-[#3e2723] active:translate-y-1">
-                🗡️ 秒殺魔王 (進入擊殺動畫)
-              </button>
-            </div>
 
+            <!-- 斬擊特效圖層 與 各種大招特效 -->
             ${state.showSlash ? `
               <div class="slash-screen-flash"></div>
               <div class="slash-effect"></div>
