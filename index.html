@@ -5,13 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>題辭大決戰 - 熱血修羅篇</title>
   
-  <!-- 引入 Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- 引入 Phosphor Icons (圖示庫) -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   
-  <!-- 引入字體：包含霞鶩文楷、霸氣明體與日系書法字體 -->
   <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@700&family=Noto+Sans+TC:wght@700;900&family=Noto+Serif+TC:wght@900&family=Yuji+Syuku&display=swap" rel="stylesheet">
 
   <style>
@@ -134,12 +131,19 @@
       animation: stampEffect 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    /* 劍陣旋轉動畫 */
+    /* 劍陣旋轉動畫 (已從終極大招拔除，保留給其他可能的地方) */
     @keyframes spinSlow {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
     .animate-spin-slow { animation: spinSlow 15s linear infinite; }
+
+    /* 新增：寶劍陸續飛入陣法的動畫 */
+    @keyframes swordSeqAppear {
+      0% { transform: translateY(150px) scale(0); opacity: 0; filter: brightness(2); }
+      70% { transform: translateY(-10px) scale(1.1); opacity: 1; filter: brightness(1.5); }
+      100% { transform: translateY(0px) scale(1); opacity: 1; filter: brightness(1); }
+    }
 
     /* 光芒四射動畫 */
     @keyframes pulseRay {
@@ -1436,12 +1440,10 @@
             </div>
 
             <div class="relative z-10 w-full max-w-6xl flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 animate-pop-in">
-              <!-- 左側：英雄主角 -->
               <div class="w-full md:w-1/2 flex justify-center items-center">
                 <img src="英雄主角.png" alt="英雄" onerror="this.src='英雄主角.jpg'" class="w-48 sm:w-64 md:w-80 lg:w-[450px] object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.2)]" />
               </div>
 
-              <!-- 右側：修羅法則 (遊戲說明) - 調整為宣紙配色 -->
               <div class="w-full md:w-1/2 flex justify-center">
                 <div class="battle-box p-6 md:p-10 w-full max-w-lg relative">
                   <div class="absolute -top-5 -left-4 bg-[#8b2626] text-[#faf6ed] px-5 py-2 font-black text-xl md:text-2xl transform -rotate-3 border-2 border-[#5c4033] shadow-[4px_4px_0_rgba(92,64,51,0.5)]">
@@ -1699,12 +1701,10 @@
             <div class="absolute inset-0 bg-[#111]/90 backdrop-blur-lg animate-pulse"></div>
             <div class="absolute inset-0 bg-white animate-[screenFlash_0.8s_ease-out_forwards]"></div>
 
-            <!-- 徹底移除 animate-spin-slow 停止繞圈，讓劍保持在固定軌道飛入 -->
             <div class="relative w-[320px] h-[320px] md:w-[600px] md:h-[600px] z-10">
                ${finalSwordsHtml}
             </div>
 
-            <!-- 終極奧義文字 (延遲 2.0 秒，等全部劍飛完再瞬間顯示，設定 both 隱藏等待期) -->
             <div class="absolute z-20 flex flex-col items-center" style="animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.0s both;">
               <div class="transform -rotate-3 flex flex-col items-center scale-110">
                 <div class="text-4xl md:text-6xl lg:text-7xl font-black italic tracking-widest font-boss-ultimate whitespace-nowrap mb-1 md:mb-2" style="color: #eaddc5; text-shadow: 0 0 15px #b8860b, 0 0 30px #8b2626, 4px 6px 10px rgba(0,0,0,0.9);">
@@ -1720,7 +1720,6 @@
 
         content = `
           <div class="min-h-screen bg-black flex flex-col items-center relative overflow-hidden pt-6 pb-36">
-            <!-- 捷徑按鈕：一擊秒殺魔王 -->
             <div class="fixed top-2 left-2 md:top-4 md:left-4 z-[60]">
               <button onclick="window.triggerKillShortcut()" 
                       class="bg-[#8b2626] text-[#faf6ed] px-3 py-2 rounded shadow-md border-2 border-[#5c4033] text-xs md:text-sm font-black transition-all hover:bg-[#b8860b] hover:text-[#3e2723] active:translate-y-1">
@@ -1728,7 +1727,6 @@
               </button>
             </div>
 
-            <!-- 斬擊特效圖層 與 各種大招特效 -->
             ${state.showSlash ? `
               <div class="slash-screen-flash"></div>
               <div class="slash-effect"></div>
@@ -1763,10 +1761,8 @@
                   </div>
                </div>
 
-               <!-- 配合題區塊 (左右兩排) -->
                <div class="flex gap-3 md:gap-8 mt-4 w-11/12 max-w-2xl ${state.isShaking ? 'animate-shake' : ''} z-40 relative">
                   
-                  <!-- 題辭列 (左) -->
                   <div class="flex-1 flex flex-col gap-2 md:gap-3">
                     ${state.bossPairs.phrases.map(p => `
                        <button onclick="handleBossItemClick('${p.id}', 'phrase')"
@@ -1780,7 +1776,6 @@
                     `).join('')}
                   </div>
 
-                  <!-- 場合列 (右) -->
                   <div class="flex-1 flex flex-col gap-2 md:gap-3">
                     ${state.bossPairs.categories.map(c => `
                        <button onclick="handleBossItemClick('${c.id}', 'category')"
@@ -1796,9 +1791,7 @@
                </div>
             </div>
 
-            <!-- 底部：英雄魂火與 9 把寶劍 -->
             <div class="fixed bottom-0 left-0 w-full bg-[#111]/95 backdrop-blur border-t-2 border-[#5c4033] p-2 md:p-4 flex items-end justify-between z-50">
-               <!-- 英雄魂火 -->
                <div class="flex flex-col items-center justify-center bg-[#2d1e12] border-2 border-[#8b2626] p-2 rounded-md shrink-0 shadow-md">
                   <span class="text-[10px] md:text-sm font-black text-[#8c8273] mb-1">英雄魂火</span>
                   <div class="flex gap-0.5 md:gap-1">
@@ -1806,7 +1799,6 @@
                   </div>
                </div>
                
-               <!-- 玩家持有的剩餘寶劍 -->
                <div class="flex flex-1 justify-center md:justify-around items-end gap-1 md:gap-4 pl-2 md:pl-6 pr-1 md:pr-2 w-full">
                   ${gameData.map((lvl, i) => `
                     <div class="flex items-end justify-center transition-all duration-500 ${i < state.currentBossQ || state.swordFlying === i ? 'hidden w-0 h-0 opacity-0 scale-0' : 'drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]'}">
@@ -1845,15 +1837,15 @@
         const uncheckedCount = state.errorHistory.filter(e => !e.checked).length;
         
         content = `
-          <div class="min-h-screen flex items-center justify-center p-4 md:p-8 overflow-hidden relative">
+          <div class="min-h-screen flex items-start md:items-center justify-center p-4 md:p-8 overflow-x-hidden overflow-y-auto relative">
             <div class="fixed inset-0 z-0 pointer-events-none">
-              <img src="遊玩畫面.png" alt="背景" onerror="this.src='遊玩畫面.jpg'" class="w-full h-full object-cover opacity-90" />
+              <img src="結局畫面.png" alt="背景" onerror="this.src='結局畫面.jpg'" class="w-full h-full object-cover" />
+              <div class="absolute inset-0 bg-black/70"></div>
             </div>
 
-            <div class="w-full max-w-7xl flex flex-col md:flex-row gap-6 md:gap-8 relative z-10 animate-pop-in h-[90vh] md:h-[85vh]">
+            <div class="w-full max-w-7xl flex flex-col md:flex-row gap-6 md:gap-8 relative z-10 animate-pop-in my-8 md:my-0 md:h-[85vh]">
               
-              <!-- 左半部：戰鬥表現結算 -->
-              <div class="battle-box w-full md:w-5/12 p-6 md:p-10 flex flex-col items-center justify-center text-center shadow-2xl">
+              <div class="battle-box w-full md:w-5/12 p-6 md:p-10 flex flex-col items-center justify-center text-center shadow-2xl shrink-0">
                 <div class="text-6xl mb-4 drop-shadow-md">🏅</div>
                 <h2 class="text-3xl md:text-5xl font-black mb-6 text-[#8b2626] tracking-widest border-b-2 border-[#5c4033] pb-4 w-full">
                   修羅結算
@@ -1879,8 +1871,7 @@
                 </div>
               </div>
 
-              <!-- 右半部：敗北紀錄清單 -->
-              <div class="battle-box w-full md:w-7/12 p-6 md:p-8 flex flex-col relative shadow-2xl">
+              <div class="battle-box w-full md:w-7/12 p-6 md:p-8 flex flex-col relative shadow-2xl h-[75vh] md:h-auto">
                 <h3 class="text-2xl md:text-3xl font-black text-[#3e2723] mb-4 pb-4 border-b-2 border-[#5c4033] flex items-center justify-between shrink-0">
                   <span class="flex items-center gap-3"><i class="ph-fill ph-scroll text-[#8b2626] text-4xl"></i> 英雄旅程回憶</span>
                   ${state.errorHistory.length > 0 ? `
@@ -1896,7 +1887,6 @@
                   </div>
                 ` : ''}
 
-                <!-- 新增 ID 讓系統記住滾動條位置 -->
                 <div id="review-list-container" class="flex-1 overflow-y-auto pr-3 space-y-2 custom-scrollbar">
                   ${state.errorHistory.length === 0 
                     ? '<div class="h-full flex flex-col items-center justify-center text-center"><i class="ph-fill ph-star text-6xl text-[#b8860b] mb-4 drop-shadow-md"></i><p class="text-2xl md:text-3xl font-black text-[#8b2626]">完美通關！<br>國學造詣深不可測！</p></div>' 
@@ -1941,33 +1931,35 @@
         content = `
           <div class="min-h-screen bg-[#111] flex flex-col items-center justify-center p-4 relative overflow-hidden" onclick="activateIntroMusic()">
             <div class="fixed inset-0 z-0 pointer-events-none">
-              <img src="結局畫面.png" alt="結局背景" onerror="this.src='結局畫面.jpg'" class="w-full h-full object-cover opacity-40 blur-sm" />
+              <img src="結局畫面.png" alt="結局背景" onerror="this.src='結局畫面.jpg'" class="w-full h-full object-cover" />
+              <div class="absolute inset-0 bg-black/70"></div>
             </div>
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 z-0">
               <div class="w-full h-full max-w-3xl max-h-[800px] bg-[radial-gradient(circle,rgba(184,134,11,0.6)_0%,transparent_70%)] animate-pulse-ray"></div>
             </div>
 
-            <div class="battle-box max-w-md w-full p-8 md:p-10 text-center z-20 mt-4 animate-pop-in cursor-default" onclick="event.stopPropagation()">
-              <h2 class="text-4xl md:text-6xl font-black mb-4 text-[#8b2626] tracking-widest leading-tight">
+            <!-- 將背景改為毛玻璃半透明設計，並調整文字與按鈕顏色以增加史詩感與對比度 -->
+            <div class="max-w-md w-full p-8 md:p-10 text-center z-20 mt-4 animate-pop-in cursor-default rounded-xl border-2 border-[#b8860b]/40 shadow-[0_0_40px_rgba(0,0,0,0.8)]" style="background: rgba(30, 20, 15, 0.45); backdrop-filter: blur(12px);" onclick="event.stopPropagation()">
+              <h2 class="text-4xl md:text-6xl font-black mb-4 text-[#f5d061] tracking-widest leading-tight drop-shadow-[0_0_15px_rgba(139,38,38,0.8)]">
                 題辭歸一
               </h2>
-              <p class="font-bold text-xl md:text-2xl text-[#3e2723] mb-6 border-b-2 border-[#5c4033] pb-4">
+              <p class="font-bold text-xl md:text-2xl text-[#faf6ed] mb-6 border-b-2 border-[#b8860b]/30 pb-4 drop-shadow-md">
                 題辭英雄就是你！
               </p>
               
-              <div class="text-2xl md:text-3xl font-black text-[#faf6ed] mb-8 bg-[#b8860b] py-3 border-2 border-[#5c4033] shadow-md transform -rotate-1 rounded">
-                最終戰力: <span class="text-[#3e2723]">${state.score}</span>
+              <div class="text-2xl md:text-3xl font-black text-[#f5d061] mb-8 bg-[#8b2626]/50 backdrop-blur py-3 border border-[#b8860b]/50 shadow-lg transform -rotate-1 rounded">
+                最終戰力: <span class="text-[#faf6ed]">${state.score}</span>
               </div>
               
               <div class="flex flex-col gap-4">
                 ${state.errorHistory.length > 0 ? `
-                  <button onclick="setState({showReviewModal: true})" class="w-full bg-[#8b2626] hover:bg-[#3e2723] text-[#faf6ed] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded">
+                  <button onclick="setState({showReviewModal: true})" class="w-full bg-[#8b2626]/70 backdrop-blur hover:bg-[#8b2626] text-[#faf6ed] py-3 px-6 text-lg md:text-xl font-black border border-[#faf6ed]/40 shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded">
                     <i class="ph-bold ph-scroll text-2xl"></i> 檢視旅程回憶
                   </button>
                 ` : ''}
 
                 <button onclick="setState({clearedLevels: [], score: 0, recentlyCleared: null, playerName: '', gameState: 'intro'})" 
-                        class="w-full bg-[#3e2723] hover:bg-[#b8860b] hover:text-[#3e2723] text-[#faf6ed] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded">
+                        class="w-full bg-[#3e2723]/70 backdrop-blur hover:bg-[#b8860b] hover:text-[#3e2723] text-[#faf6ed] py-3 px-6 text-lg md:text-xl font-black border border-[#faf6ed]/40 shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded">
                   <i class="ph-bold ph-arrows-clockwise text-2xl"></i> 重新開啟輪迴
                 </button>
               </div>
