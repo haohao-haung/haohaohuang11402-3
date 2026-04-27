@@ -1,0 +1,2225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>題辭大決戰 - 熱血修羅篇</title>
+  
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 引入 Phosphor Icons (圖示庫) -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- 引入字體：包含霞鶩文楷、霸氣明體與日系書法字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@700&family=Noto+Sans+TC:wght@700;900&family=Noto+Serif+TC:wght@900&family=Yuji+Syuku&display=swap" rel="stylesheet">
+
+  <style>
+    /* 基礎背景：宣紙質感 */
+    body {
+      background-color: #eaddc5;
+      background-image: url('data:image/svg+xml,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100" height="100" filter="url(%23noise)" opacity="0.08"/%3E%3C/svg%3E');
+      font-family: 'Noto Sans TC', sans-serif;
+      overflow-x: hidden;
+      color: #3e2723;
+      user-select: none;
+    }
+    
+    /* 宣紙/木紋戰鬥框 */
+    .battle-box {
+      background: rgba(245, 240, 230, 0.92);
+      backdrop-filter: blur(8px);
+      border-radius: 4px;
+      border: 2px solid #5c4033;
+      box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(139, 69, 19, 0.05);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    
+    /* 字盤按鈕 */
+    .char-btn {
+      background: #faf6ed;
+      color: #3e2723;
+      border-radius: 6px;
+      border: 2px solid #5c4033;
+      box-shadow: 2px 3px 0px #3e2723;
+      transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @media (min-width: 768px) {
+      .char-btn { border-radius: 8px; }
+    }
+    
+    .char-btn:active:not(:disabled) {
+      transform: translate(2px, 3px);
+      box-shadow: 0 0 0 #3e2723;
+    }
+
+    /* 被選中的字 */
+    .char-btn.selected {
+      background: #8b2626;
+      color: #faf6ed;
+      border-color: #3e2723;
+      transform: translate(2px, 3px);
+      box-shadow: 0 0 0 transparent;
+    }
+
+    /* 奧義(題辭)方塊 */
+    .phrase-block {
+      background: #3e2723;
+      color: #faf6ed;
+      border-radius: 4px;
+      border: 2px solid #b8860b;
+      box-shadow: 3px 3px 0 rgba(184, 134, 11, 0.6);
+      cursor: grab;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .phrase-block:active { cursor: grabbing; transform: scale(0.95); }
+    .phrase-block.active-click { 
+      background: #b8860b;
+      color: #3e2723;
+      border-color: #3e2723;
+      box-shadow: 4px 4px 0 #3e2723;
+      transform: scale(1.1) rotate(-2deg); 
+    }
+
+    /* 陣法分類框 */
+    .category-basket {
+      background: rgba(250, 246, 237, 0.7);
+      backdrop-filter: blur(4px);
+      border: 2px dashed #5c4033;
+      border-radius: 6px;
+      transition: all 0.2s;
+      min-width: 85px;
+      width: max-content;
+      min-height: 74px;
+    }
+    @media (min-width: 768px) {
+      .category-basket {
+        min-width: 140px;
+        min-height: 90px;
+        border-radius: 8px;
+      }
+    }
+    .category-basket.highlight {
+      background: rgba(184, 134, 11, 0.2);
+      border-style: solid;
+      border-color: #8b2626;
+      transform: scale(1.05);
+      box-shadow: 4px 4px 0 rgba(139, 38, 38, 0.4);
+    }
+
+    /* 錯誤與魔王震動 */
+    @keyframes shakeError {
+      0%, 100% { transform: translateX(0) scale(1); }
+      20%, 60% { transform: translateX(-12px) rotate(-4deg) scale(1.05); }
+      40%, 80% { transform: translateX(12px) rotate(4deg) scale(1.05); }
+    }
+    .animate-shake { animation: shakeError 0.4s ease-in-out; border-color: #8b2626 !important; }
+
+    /* 彈出動畫 */
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.05) rotate(1deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .animate-pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+    /* 制霸烙印動畫 */
+    @keyframes stampEffect {
+      0% { transform: scale(4) rotate(-20deg); opacity: 0; }
+      50% { transform: scale(0.8) rotate(-20deg); opacity: 1; }
+      100% { transform: scale(1) rotate(-15deg); opacity: 1; filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.5)); }
+    }
+    .animate-stamp {
+      animation: stampEffect 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* 劍陣旋轉動畫 */
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow { animation: spinSlow 15s linear infinite; }
+
+    /* 光芒四射動畫 */
+    @keyframes pulseRay {
+      0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
+      50% { opacity: 0.6; transform: scale(1.05) rotate(3deg); }
+    }
+    .animate-pulse-ray { animation: pulseRay 4s ease-in-out infinite; }
+
+    /* 寶劍飛射刺入血晶的動畫 */
+    @keyframes strikeDown {
+      0% { transform: translateY(400px) scale(2.5); opacity: 0; filter: drop-shadow(0 0 20px white); }
+      30% { transform: translateY(50px) scale(1.8); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .animate-strike-down {
+      animation: strikeDown 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+    }
+
+    /* 斬擊刀光與螢幕閃爍特效 */
+    @keyframes slashFlash {
+      0% { transform: translate(-50%, -50%) rotate(-35deg) scaleX(0) scaleY(3); opacity: 0.8; }
+      20% { transform: translate(-50%, -50%) rotate(-35deg) scaleX(1) scaleY(1); opacity: 1; background: #fff; }
+      100% { transform: translate(-50%, -50%) rotate(-35deg) scaleX(1.5) scaleY(0); opacity: 0; }
+    }
+    .slash-effect {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200vw;
+      height: 12px;
+      background: #fff;
+      box-shadow: 0 0 20px #fff, 0 0 50px #faf6ed, 0 0 100px #8b2626;
+      animation: slashFlash 0.3s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    @keyframes screenFlash {
+      0% { opacity: 0.6; }
+      100% { opacity: 0; }
+    }
+    .slash-screen-flash {
+      position: absolute;
+      inset: 0;
+      background: white;
+      animation: screenFlash 0.4s ease-out forwards;
+      pointer-events: none;
+      z-index: 9998;
+    }
+
+    /* 魂火(生命值) */
+    .fire-icon { color: #8c8273; fill: currentColor; }
+    .fire-icon.filled { color: #8b2626; filter: drop-shadow(0 0 3px rgba(139, 38, 38, 0.6)); }
+    
+    /* 檢討卷打勾變暗 */
+    .review-item { transition: all 0.3s ease; }
+    .review-item.checked { opacity: 0.4; filter: grayscale(100%); box-shadow: none; transform: translate(2px, 2px); border-color: #8c8273; }
+
+    /* 滾動條美化 */
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(92,64,51,0.1); border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #8b2626; border-radius: 4px; }
+
+    /* 寶劍破陣飛出放大動畫 */
+    @keyframes flyOutAndScale {
+      0% { transform: scale(0) translateY(200px) rotate(-45deg); opacity: 0; }
+      30% { transform: scale(1.5) translateY(0) rotate(10deg); opacity: 1; filter: drop-shadow(0 0 30px rgba(255,255,255,0.8)); }
+      70% { transform: scale(1.8) translateY(0) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 40px rgba(255,255,255,0.9)); }
+      100% { transform: scale(4) translateY(-150px) rotate(20deg); opacity: 0; filter: drop-shadow(0 0 60px rgba(255,255,255,1)); }
+    }
+    .animate-fly-out {
+      animation: flyOutAndScale 2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    /* 帥氣書法字體 (清晰易讀的霞鶩文楷) */
+    .font-calligraphy {
+      font-family: 'LXGW WenKai TC', 'DFKai-SB', 'BiauKai', 'KaiTi', serif;
+    }
+
+    /* 魔王戰奧義專屬霸氣字體 (極具殺氣與張力的明體/日系組合) */
+    .font-boss-ultimate {
+      font-family: 'Yuji Syuku', 'Noto Serif TC', 'BiauKai', serif;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="app"></div>
+
+  <script>
+    // --- 寶劍圖檔讀取器 ---
+    window.getSwordSvg = function(type, colorHex) {
+      const swordMap = {
+        1: "龍鳳雙劍.png",
+        2: "福壽金刃.png",
+        3: "濟世重劍.png",
+        4: "聚寶錢劍.png",
+        5: "行雲水刃.png",
+        6: "雷霆戰劍.png",
+        7: "幽冥暗劍.png",
+        8: "落雨殘劍.png",
+        9: "桃李雨刃.png"
+      };
+      
+      const imgSrc = swordMap[type] || "龍鳳雙劍.png";
+      
+      return `
+        <img src="${imgSrc}" alt="寶劍" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.6));" onerror="this.src='https://via.placeholder.com/150?text=Sword';"/>
+      `;
+    };
+
+    // --- 題庫資料 ---
+    const gameData = [
+      {
+        levelName: "第一陣：慶賀(一) 前篇",
+        icon: "ph-heart", iconColor: "text-[#8b2626]", bgColor: "bg-[#8b2626]/10 border-2 border-[#8b2626]",
+        reward: { name: "龍鳳雙劍", swordType: 1, colorHex: "#8b2626" },
+        options: ["訂婚", "結婚", "嫁女", "生男", "生女", "男壽", "女壽", "男女通用壽"],
+        questions: [
+          { q: "佳偶天成", a: "結婚" }, { q: "弄瓦徵祥", a: "生女" }, { q: "弄璋誌喜", a: "生男" },
+          { q: "添丁之喜", a: "生男" }, { q: "樹茂椿庭", a: "男壽" }, { q: "福如東海", a: "男女通用壽" },
+          { q: "白頭偕老", a: "結婚" }, { q: "喜獲千金", a: "生女" }, { q: "壽比南山", a: "男女通用壽" },
+          { q: "鸞鳳和鳴", a: "結婚" }, { q: "文定之喜", a: "訂婚" }, { q: "瑤池春永", a: "女壽" },
+          { q: "永浴愛河", a: "結婚" }, { q: "天作之合", a: "結婚" }, { q: "喜獲麟兒", a: "生男" },
+          { q: "鳳凰于飛", a: "結婚" }, { q: "松柏長青", a: "男女通用壽" }
+        ]
+      },
+      {
+        levelName: "第二陣：慶賀(一) 後篇",
+        icon: "ph-cake", iconColor: "text-[#b87333]", bgColor: "bg-[#b87333]/10 border-2 border-[#b87333]",
+        reward: { name: "福壽金刃", swordType: 2, colorHex: "#b87333" },
+        options: ["訂婚", "結婚", "嫁女", "生男", "生女", "男壽", "女壽", "男女通用壽"],
+        questions: [
+          { q: "之子于歸", a: "嫁女" }, { q: "宜室宜家", a: "嫁女" }, { q: "桃夭及時", a: "嫁女" }, 
+          { q: "琴瑟和鳴", a: "結婚" }, { q: "珠聯璧合", a: "結婚" }, { q: "南極騰輝", a: "男壽" }, 
+          { q: "松鶴延齡", a: "男女通用壽" }, { q: "金萱不老", a: "女壽" }, { q: "明珠入掌", a: "生女" }, 
+          { q: "緣訂三生", a: "訂婚" }, { q: "百年好合", a: "結婚" }, { q: "永締良緣", a: "結婚" }, 
+          { q: "天賜遐齡", a: "男壽" }, { q: "妙選東床", a: "嫁女" }, { q: "慈竹風和", a: "女壽" }, 
+          { q: "花好月圓", a: "結婚" }, { q: "熊夢徵祥", a: "生男" }
+        ]
+      },
+      {
+        levelName: "第三陣：慶賀(二) 前篇",
+        icon: "ph-buildings", iconColor: "text-[#4a6b7d]", bgColor: "bg-[#4a6b7d]/10 border-2 border-[#4a6b7d]",
+        reward: { name: "濟世重劍", swordType: 3, colorHex: "#4a6b7d" },
+        options: ["遷居", "新居落成", "校慶", "畢業", "當選", "醫院", "商店", "飯店旅館", "書店", "工廠"],
+        questions: [
+          { q: "樹人大業", a: "校慶" }, { q: "妙手回春", a: "醫院" }, { q: "美輪美奐", a: "新居落成" },
+          { q: "眾望所歸", a: "當選" }, { q: "鵬程萬里", a: "畢業" }, { q: "里仁為美", a: "遷居" },
+          { q: "仁心仁術", a: "醫院" }, { q: "貴客盈門", a: "飯店旅館" }, { q: "高軒蒞止", a: "飯店旅館" },
+          { q: "近悅遠來", a: "商店" }, { q: "喬遷之喜", a: "遷居" }, { q: ["大展鴻圖", "鴻圖大展"], a: "商店" },
+          { q: "學無止境", a: "畢業" }, { q: "樂育美才", a: "校慶" }, { q: "萬商雲集", a: "商店" },
+          { q: "堂構維新", a: "新居落成" }, { q: "鶯遷喬木", a: "遷居" }
+        ]
+      },
+      {
+        levelName: "第四陣：慶賀(二) 後篇",
+        icon: "ph-storefront", iconColor: "text-[#3a4f5c]", bgColor: "bg-[#3a4f5c]/10 border-2 border-[#3a4f5c]",
+        reward: { name: "聚寶錢劍", swordType: 4, colorHex: "#3a4f5c" },
+        options: ["遷居", "新居落成", "校慶", "畢業", "當選", "醫院", "商店", "飯店旅館", "書店", "工廠"],
+        questions: [
+          { q: "業紹陶朱", a: "商店" }, { q: "華堂煥彩", a: "新居落成" }, { q: "廣栽桃李", a: "校慶" }, 
+          { q: "為民喉舌", a: "當選" }, { q: "前程似錦", a: "畢業" }, { q: "杏林之光", a: "醫院" }, 
+          { q: "桑梓之光", a: "當選" }, { q: "坐擁百城", a: "書店" }, { q: "名山事業", a: "書店" }, 
+          { q: "金匱石室", a: "書店" }, { q: "百工居肆", a: "工廠" }, { q: "大業永昌", a: "工廠" }, 
+          { q: "開物成務", a: "工廠" }, { q: "百年樹人", a: "校慶" }, { q: "賓至如歸", a: "飯店旅館" }, 
+          { q: "懸壺濟世", a: "醫院" }, { q: "華佗再世", a: "醫院" }
+        ]
+      },
+      {
+        levelName: "第五陣：比賽祝賀 前篇",
+        icon: "ph-palette", iconColor: "text-[#457c74]", bgColor: "bg-[#457c74]/10 border-2 border-[#457c74]",
+        reward: { name: "行雲水刃", swordType: 5, colorHex: "#457c74" },
+        options: ["作文", "書法", "音樂", "舞蹈", "戲劇", "演講辯論", "體育活動"],
+        questions: [
+          { q: "鐵畫銀鉤", a: "書法" }, { q: "含英咀華", a: "作文" }, { q: ["珠圓玉潤", "玉潤珠圓"], a: "音樂" },
+          { q: "飄逸生姿", a: "舞蹈" }, { q: ["生花妙筆", "妙筆生花"], a: "作文" }, { q: "文章天成", a: "作文" },
+          { q: "辯才無礙", a: "演講辯論" }, { q: "國粹之光", a: "書法" }, { q: "餘音繞梁", a: "音樂" },
+          { q: "旗開得勝", a: "體育活動" }, { q: "允文允武", a: "體育活動" }, { q: "口若懸河", a: "演講辯論" }
+        ]
+      },
+      {
+        levelName: "第六陣：比賽祝賀 後篇",
+        icon: "ph-trophy", iconColor: "text-[#a68a38]", bgColor: "bg-[#a68a38]/10 border-2 border-[#a68a38]",
+        reward: { name: "雷霆戰劍", swordType: 6, colorHex: "#a68a38" },
+        options: ["作文", "書法", "音樂", "舞蹈", "戲劇", "演講辯論", "體育活動"],
+        questions: [
+          { q: "舞姿翩翩", a: "舞蹈" }, { q: "筆走龍蛇", a: "書法" }, { q: "技藝超群", a: "體育活動" },
+          { q: "舌粲蓮花", a: "演講辯論" }, { q: "新鶯出谷", a: "音樂" }, { q: "舞藝超群", a: "舞蹈" },
+          { q: "龍騰虎躍", a: "體育活動" }, { q: "字字珠璣", a: "作文" }, { q: "龍飛鳳舞", a: "書法" },
+          { q: "唱作俱佳", a: "戲劇" }, { q: "維妙維肖", a: "戲劇" }
+        ]
+      },
+      {
+        levelName: "第七陣：哀輓類 前篇",
+        icon: "ph-flower-lotus", iconColor: "text-[#63686d]", bgColor: "bg-[#63686d]/10 border-2 border-[#63686d]",
+        reward: { name: "幽冥暗劍", swordType: 7, colorHex: "#63686d" },
+        options: ["男喪", "女喪", "男女通用喪", "朋友", "師長", "政界"],
+        questions: [
+          { q: "母儀足式", a: "女喪" }, { q: "遽返道山", a: "男喪" }, { q: "德業長昭", a: "男喪" },
+          { q: "國失賢良", a: "政界" }, { q: "桃李興悲", a: "師長" }, { q: "哲人其萎", a: "男喪" },
+          { q: "音容宛在", a: "男女通用喪" }, { q: "忠勤足式", a: "政界" }, { q: "淑德永昭", a: "女喪" }
+        ]
+      },
+      {
+        levelName: "第八陣：哀輓類 後篇",
+        icon: "ph-cloud-rain", iconColor: "text-[#3d4246]", bgColor: "bg-[#3d4246]/10 border-2 border-[#3d4246]",
+        reward: { name: "落雨殘劍", swordType: 8, colorHex: "#3d4246" },
+        options: ["男喪", "女喪", "男女通用喪", "朋友", "師長", "政界"],
+        questions: [
+          { q: "響絕牙琴", a: "朋友" }, { q: "駕返瑤池", a: "女喪" }, { q: "懿範長存", a: "女喪" },
+          { q: "痛失知音", a: "朋友" }, { q: "駕鶴西歸", a: "男喪" }, { q: "福壽全歸", a: "男女通用喪" },
+          { q: "高山安仰", a: "師長" }, { q: "道範長存", a: "男喪" }
+        ]
+      },
+      {
+        levelName: "第九陣：應酬類",
+        icon: "ph-tree", iconColor: "text-[#4c7a4d]", bgColor: "bg-[#4c7a4d]/10 border-2 border-[#4c7a4d]",
+        reward: { name: "桃李雨刃", swordType: 9, colorHex: "#4c7a4d" },
+        options: ["頌師恩", "題名勝"],
+        questions: [
+          { q: "世外桃源", a: "題名勝" }, { q: "春風化雨", a: "頌師恩" }, { q: "杏壇之光", a: "頌師恩" },
+          { q: "有教無類", a: "頌師恩" }, { q: "江山如畫", a: "題名勝" }, { q: "曲徑通幽", a: "題名勝" }
+        ]
+      }
+    ];
+
+    // --- 詳盡解釋辭典 ---
+    const phraseDict = {
+      "佳偶天成": "美好的配偶是天意所安排的。祝賀結婚。",
+      "弄瓦徵祥": "瓦為古時紡車上的零件，借指女子。祝賀生女。",
+      "弄璋誌喜": "璋為玉器，古人把璋給男孩玩，期盼他品德如玉。祝賀生男。",
+      "添丁之喜": "祝賀生男，家族增添男丁。",
+      "樹茂椿庭": "椿樹長壽，比喻父親；庭指家裡。祝賀男性長輩壽辰。",
+      "福如東海": "福氣像東海的水一樣浩大。男女通用壽辭。",
+      "白頭偕老": "夫妻共同生活到老。祝賀結婚。",
+      "喜獲千金": "千金比喻珍貴的女兒。祝賀生女。",
+      "壽比南山": "壽命像終南山一樣長久。男女通用壽辭。",
+      "鸞鳳和鳴": "鸞鳥與鳳凰和諧鳴叫，比喻夫妻感情和諧。祝賀結婚。",
+      "文定之喜": "文定指訂婚。祝賀男女訂婚。",
+      "瑤池春永": "瑤池為西王母仙境，比喻女性長輩青春長駐。祝賀女性壽辰。",
+      "永浴愛河": "永遠沉浸在愛的長河中。祝賀結婚。",
+      "天作之合": "上天安排的美滿姻緣。祝賀結婚。",
+      "喜獲麟兒": "麟兒是對他人兒子的美稱。祝賀生男。",
+      "鳳凰于飛": "鳳凰相伴而飛，比喻夫妻和睦。祝賀結婚。",
+      "松柏長青": "松柏四季常青，比喻長壽不老。男女通用壽辭。",
+      "之子于歸": "之子指這個女子，于歸指女子出嫁。祝賀嫁女。",
+      "宜室宜家": "女子出嫁後能使家庭和順。祝賀嫁女。",
+      "桃夭及時": "出自詩經，桃花盛開比喻女子青春年華出嫁。祝賀嫁女。",
+      "琴瑟和鳴": "琴瑟兩種樂器聲音和諧，比喻夫妻感情融洽。祝賀結婚。",
+      "珠聯璧合": "珍珠聯串、美玉結合，比喻人才或美好的事物相匹配。祝賀結婚。",
+      "南極騰輝": "南極仙翁(壽星)散發光輝。祝賀男性壽辰。",
+      "松鶴延齡": "松樹與丹頂鶴皆為長壽的象徵。男女通用壽辭。",
+      "金萱不老": "萱草(忘憂草)借指母親。祝賀女性長輩壽辰。",
+      "明珠入掌": "把掌上明珠抱在懷中，比喻生得愛女。祝賀生女。",
+      "緣訂三生": "三生指前生、今生、來生，形容姻緣是命中注定。祝賀訂婚。",
+      "百年好合": "夫妻永遠和好。祝賀結婚。",
+      "永締良緣": "永遠結成美好的姻緣。祝賀結婚。",
+      "天賜遐齡": "上天賜予高壽。祝賀男性壽辰。",
+      "妙選東床": "東床借指女婿，意指選到好女婿。祝賀嫁女。",
+      "慈竹風和": "慈竹多筍(多子)，比喻母親慈愛。祝賀女性壽辰。",
+      "花好月圓": "花開正盛，月亮正圓，比喻人事美好圓滿。祝賀結婚。",
+      "熊夢徵祥": "古人認為夢見熊是生男孩的吉兆。祝賀生男。",
+      "樹人大業": "培養人才是一項偉大的事業。祝賀學校校慶。",
+      "妙手回春": "醫生醫術高明，能把垂危的病人治好。祝賀醫院。",
+      "美輪美奐": "形容房屋高大華麗。祝賀新居落成。",
+      "眾望所歸": "深得眾人擁護與愛戴。祝賀當選。",
+      "鵬程萬里": "大鵬鳥一飛萬里，比喻前程遠大。祝賀畢業。",
+      "里仁為美": "與有仁德的人住在一起才是最好的。祝賀遷居。",
+      "仁心仁術": "有仁愛的心腸與高明的醫術。祝賀醫院。",
+      "貴客盈門": "尊貴的客人充滿門庭。祝賀飯店旅館。",
+      "高軒蒞止": "尊貴的車駕(客人)到來。祝賀飯店旅館。",
+      "近悅遠來": "近處的人高興，遠處的人來歸附。祝賀商店或旅館。",
+      "喬遷之喜": "祝賀他人搬到好地方的喜事。祝賀遷居。",
+      "大展鴻圖": "大規模地展開宏大的計畫。祝賀商店開業。",
+      "鴻圖大展": "大規模地展開宏大的計畫。祝賀商店開業。",
+      "學無止境": "學問是沒有盡頭的。勉勵或祝賀畢業。",
+      "樂育美才": "樂於培育優秀的人才。祝賀學校校慶。",
+      "萬商雲集": "眾多商人如雲般聚集。祝賀商店。",
+      "堂構維新": "堂構指房屋，維新指煥然一新。祝賀新居落成。",
+      "鶯遷喬木": "黃鶯從幽谷飛到高大的樹上，比喻步步高升。祝賀遷居。",
+      "業紹陶朱": "陶朱公(范蠡)為古代富商，意指繼承其商業才能。祝賀商店。",
+      "華堂煥彩": "華麗的廳堂散發光彩。祝賀新居落成。",
+      "廣栽桃李": "桃李比喻學生，意指廣泛培育人才。祝賀學校校慶。",
+      "為民喉舌": "代替人民發聲、講話。祝賀當選。",
+      "前程似錦": "未來的路途像錦緞般美好。祝賀畢業。",
+      "杏林之光": "三國名醫董奉治病不收錢，只要求種杏樹，後以杏林稱醫界。祝賀醫院。",
+      "桑梓之光": "桑梓借指家鄉，意指為家鄉爭光。祝賀當選。",
+      "坐擁百城": "比喻藏書極為豐富。祝賀書店。",
+      "名山事業": "古人將著作藏於名山，後指不朽的著述。祝賀書店。",
+      "金匱石室": "古代國家收藏重要典籍的地方。祝賀書店。",
+      "百工居肆": "各行各業的工匠在作坊裡工作。祝賀工廠。",
+      "大業永昌": "偉大的事業永遠昌盛。祝賀工廠。",
+      "開物成務": "開發萬物之理，成就天下之事。祝賀工廠。",
+      "百年樹人": "培育人才是百年長遠的計畫。祝賀學校校慶。",
+      "賓至如歸": "客人來到這裡就像回到自己家一樣舒適。祝賀飯店旅館。",
+      "懸壺濟世": "行醫救人。祝賀醫院。",
+      "華佗再世": "醫術如神醫華佗般高明。祝賀醫院。",
+      "鐵畫銀鉤": "形容書法筆畫剛勁而優美。祝賀書法比賽。",
+      "含英咀華": "品味文章的精華。祝賀作文比賽。",
+      "珠圓玉潤": "像珠子般圓，像玉般潤。形容歌聲婉轉優美。祝賀音樂比賽。",
+      "玉潤珠圓": "像珠子般圓，像玉般潤。形容歌聲婉轉優美。祝賀音樂比賽。",
+      "飄逸生姿": "舞動時姿態輕盈優美。祝賀舞蹈比賽。",
+      "生花妙筆": "比喻文筆巧妙生動。祝賀作文比賽。",
+      "妙筆生花": "比喻文筆巧妙生動。祝賀作文比賽。",
+      "文章天成": "文章像天然生成一樣自然，沒有人工雕琢的痕跡。祝賀作文比賽。",
+      "辯才無礙": "能言善道，辭理通達而無所阻礙。祝賀演講辯論比賽。",
+      "國粹之光": "發揚國家傳統文化(書法)的光輝。祝賀書法比賽。",
+      "餘音繞梁": "歌聲停止後，餘音猶環繞屋梁。形容聲音優美。祝賀音樂比賽。",
+      "旗開得勝": "一展開戰旗就獲勝。祝賀體育活動。",
+      "允文允武": "文才與武德都具備。祝賀體育活動。",
+      "口若懸河": "說話像瀑布流瀉般滔滔不絕。祝賀演講辯論比賽。",
+      "舞姿翩翩": "跳舞的姿態輕盈美好。祝賀舞蹈比賽。",
+      "筆走龍蛇": "形容書法筆勢生動活潑。祝賀書法比賽。",
+      "技藝超群": "技術與才藝超越常人.祝賀體育活動。",
+      "舌粲蓮花": "形容口才好，說話動聽。祝賀演講辯論比賽。",
+      "新鶯出谷": "像初出幽谷的黃鶯，聲音清脆宛轉。祝賀音樂比賽。",
+      "舞藝超群": "舞蹈技藝超越常人。祝賀舞蹈比賽。",
+      "龍騰虎躍": "像龍在飛騰，虎在跳躍。形容動作威武矯健。祝賀體育活動。",
+      "字字珠璣": "形容文章字句十分優美珍貴。祝賀作文比賽。",
+      "龍飛鳳舞": "形容書法筆勢奔放。祝賀書法比賽。",
+      "唱作俱佳": "歌唱與動作表演都很好。祝賀戲劇比賽。",
+      "維妙維肖": "模仿得非常逼真。祝賀戲劇比賽。",
+      "母儀足式": "女性的典範足以作為楷模。哀輓女喪。",
+      "遽返道山": "突然回到仙山(死亡)。哀輓男喪。",
+      "德業長昭": "品德與事蹟永遠明示後人。哀輓男喪。",
+      "國失賢良": "國家失去了賢明的人才。哀輓政界喪。",
+      "桃李興悲": "桃李指學生，學生為老師的過世感到悲傷。哀輓師長喪。",
+      "哲人其萎": "賢明的人衰病過世。哀輓男喪。",
+      "音容宛在": "聲音與容貌彷彿還在眼前。男女通用哀輓。",
+      "忠勤足式": "忠誠勤奮足以作為楷模。哀輓政界喪。",
+      "淑德永昭": "美好的品德永遠明示後人。哀輓女喪。",
+      "響絕牙琴": "俞伯牙因鍾子期死而摔琴，比喻痛失知音。哀輓朋友喪。",
+      "駕返瑤池": "靈魂返回西王母的仙境。哀輓女喪。",
+      "懿範長存": "美好的典範永遠留存。哀輓女喪。",
+      "痛失知音": "悲痛失去了解自己的好友。哀輓朋友喪。",
+      "駕鶴西歸": "乘鶴飛往西方極樂世界。哀輓男喪。",
+      "福壽全歸": "享盡福氣與高壽而離世。男女通用哀輓(多用於高壽者)。",
+      "高山安仰": "高山指師長，比喻令人景仰的師長過世了。哀輓師長喪。",
+      "道範長存": "道德典範永遠留存。哀輓男喪。",
+      "世外桃源": "比喻風景優美、脫離塵俗的地方。題名勝。",
+      "春風化雨": "比喻師長和藹親切的教導。頌師恩。",
+      "杏壇之光": "杏壇相傳為孔子講學處，指教育界的光榮。頌師恩。",
+      "有教無類": "施教不分身分貴賤。頌師恩。",
+      "江山如畫": "形容山水風景如畫般美麗。題名勝。",
+      "曲徑通幽": "彎曲的小路通往幽深安靜的地方。題名勝。"
+    };
+
+    // --- 音效系統 ---
+    const audios = {
+      bgm: new Audio("背景音樂.mp3"),
+      introBgm: new Audio("背景音樂.mp3"),
+      bossBgm: new Audio("決戰音樂.mp3"),
+      pop: new Audio("https://codeskulptor-demos.commondatastorage.googleapis.com/pang/pop.mp3"),
+      spellSuccess: new Audio("https://assets.mixkit.co/active_storage/sfx/1114/1114-preview.mp3"),
+      categorySuccess: new Audio("https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3"),
+      error: new Audio("https://assets.mixkit.co/active_storage/sfx/946/946-preview.mp3"),
+      clear: new Audio("https://assets.mixkit.co/active_storage/sfx/2015/2015-preview.mp3"),
+      stamp: new Audio("https://codeskulptor-demos.commondatastorage.googleapis.com/descent/Crate.wav"),
+      epicStart: new Audio("https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"),
+      swordFly: new Audio("刀聲.mp3") 
+    };
+    
+    audios.bgm.loop = true;
+    audios.introBgm.loop = true;
+    audios.bossBgm.loop = true;
+    audios.bgm.volume = 0.3;
+    audios.introBgm.volume = 0.5;
+    audios.bossBgm.volume = 0.5; 
+    audios.pop.volume = 0.6;
+    audios.spellSuccess.volume = 0.6;
+    audios.categorySuccess.volume = 0.7;
+    audios.error.volume = 0.5;
+    audios.clear.volume = 0.6;
+    audios.stamp.volume = 0.8;
+    audios.epicStart.volume = 1.0; 
+    audios.swordFly.volume = 1.0; 
+
+    function playSound(type) {
+      const a = audios[type];
+      if (a) {
+        a.currentTime = 0;
+        a.play().catch(e => console.log("Audio prevent", e));
+      }
+    }
+
+    // --- 全域狀態 ---
+    let state = {
+      gameState: 'intro',
+      currentLevel: 0,
+      clearedLevels: [],
+      recentlyCleared: null,
+      lives: 5,
+      score: 0,
+      stageQuestions: [],
+      boardChars: [], 
+      selectedChars: [],
+      isShaking: false,
+      isVerifying: false,
+      phrases: [], 
+      activePhraseId: null,
+      learningError: null, 
+      isMusicPlaying: false,
+      errorHistory: [], 
+      showReviewModal: false,
+      levelStartTime: null,
+      lastLevelStats: null,
+      playerName: '',
+      levelClearAnim: false,
+      
+      bossHp: 9,
+      bossQuestions: [],
+      currentBossQ: 0,
+      bossShake: false,
+      swordFlying: null,
+      showSlash: false,
+      finalUltimateAnim: false,
+      bossPairs: { phrases: [], categories: [] },
+      selectedBossPhrase: null,
+      selectedBossCategory: null,
+      bossClearedPairs: 0,
+      bossTimer: 20,
+      isBossMode: false
+    };
+
+    let gameTimerInterval = null; 
+    let bossTimerInterval = null;
+
+    function setState(updates) {
+      const prevState = state.gameState;
+      state = { ...state, ...updates };
+      
+      if (updates.gameState && updates.gameState !== prevState) {
+         window.updateMusic();
+      }
+      
+      render();
+    }
+
+    window.updateMusic = function() {
+      if (state.isMusicPlaying) {
+        if (state.gameState === 'bossIntro' || state.gameState === 'boss') {
+          audios.bgm.pause();
+          audios.introBgm.pause();
+          if (audios.bossBgm) audios.bossBgm.play().catch(e => { console.log('Audio error:', e); state.isMusicPlaying = false; render(); });
+        } else if (state.gameState === 'video' || state.gameState === 'bossKillVideo' || state.gameState === 'endingVideo') {
+          audios.bgm.pause();
+          audios.introBgm.pause();
+          if (audios.bossBgm) audios.bossBgm.pause();
+        } else if (['intro', 'story', 'instructions', 'postBossReview', 'victory'].includes(state.gameState)) {
+          audios.bgm.pause();
+          if (audios.bossBgm) audios.bossBgm.pause();
+          audios.introBgm.play().catch(e => { console.log('Audio error:', e); state.isMusicPlaying = false; render(); });
+        } else {
+          audios.introBgm.pause();
+          if (audios.bossBgm) audios.bossBgm.pause();
+          audios.bgm.play().catch(e => { console.log('Audio error:', e); state.isMusicPlaying = false; render(); });
+        }
+      } else {
+        audios.introBgm.pause();
+        audios.bgm.pause();
+        if (audios.bossBgm) audios.bossBgm.pause();
+      }
+    };
+
+    window.toggleMusic = function(e) {
+      if (e) e.stopPropagation();
+      state.isMusicPlaying = !state.isMusicPlaying;
+      window.updateMusic();
+      render();
+    };
+
+    window.activateIntroMusic = () => {
+      if (!state.isMusicPlaying && (['intro', 'story', 'video', 'bossKillVideo', 'endingVideo', 'instructions', 'postBossReview', 'victory', 'bossIntro'].includes(state.gameState))) {
+        state.isMusicPlaying = true;
+        window.updateMusic();
+        render();
+      }
+    };
+
+    window.addEventListener('click', function initAudioOnFirstClick() {
+      if ((['intro', 'victory', 'bossIntro'].includes(state.gameState)) && !state.isMusicPlaying) {
+        state.isMusicPlaying = true;
+        window.updateMusic();
+        render();
+      }
+      window.removeEventListener('click', initAudioOnFirstClick);
+    }, { once: true });
+
+    function startGameFlow() {
+      if(!state.isMusicPlaying) {
+        state.isMusicPlaying = true;
+        window.updateMusic();
+      }
+    }
+
+    window.goToStory = (e) => {
+      if (e) e.stopPropagation();
+      playSound('epicStart'); 
+      state.gameState = 'story';
+      state.isMusicPlaying = true; 
+      window.updateMusic();
+      render();
+    };
+
+    window.triggerKillShortcut = () => {
+      if (typeof bossTimerInterval !== 'undefined') {
+        clearInterval(bossTimerInterval);
+      }
+      setState({ finalUltimateAnim: true, showSlash: true, bossShake: false, swordFlying: null, levelClearAnim: false });
+      playSound('epicStart');
+      setTimeout(() => playSound('clear'), 800);
+
+      setTimeout(() => {
+         setState({ gameState: 'bossKillVideo', finalUltimateAnim: false, showSlash: false });
+      }, 4500);
+    };
+
+    window.enterVideo = (e) => {
+      if (e) e.stopPropagation();
+      playSound('pop');
+      state.gameState = 'video';
+      window.updateMusic();
+      render();
+    };
+
+    window.videoEnded = (type = 'intro') => {
+      if (type === 'intro') {
+        state.gameState = 'instructions';
+      } else if (type === 'kill') {
+        state.gameState = 'postBossReview';
+      } else if (type === 'ending') {
+        state.gameState = 'victory';
+      }
+      window.updateMusic();
+      render();
+    };
+
+    window.enterInstructions = (e) => {
+      if (e) e.stopPropagation();
+      playSound('pop');
+      state.gameState = 'instructions';
+      if (!state.isMusicPlaying) {
+         state.isMusicPlaying = true;
+      }
+      window.updateMusic();
+      render();
+    };
+
+    function startLevel(levelIndex) {
+      startGameFlow();
+      const levelData = gameData[levelIndex];
+      const shuffledQ = [...levelData.questions].sort(() => 0.5 - Math.random()).slice(0, 4);
+      
+      let chars = [];
+      shuffledQ.forEach((qObj, qIdx) => {
+        const textToSplit = Array.isArray(qObj.q) ? qObj.q[0] : qObj.q;
+        textToSplit.split('').forEach((char, cIdx) => {
+          chars.push({ id: `char-${qIdx}-${cIdx}`, char, status: 'idle' });
+        });
+      });
+      
+      setState({
+        lives: 5,
+        currentLevel: levelIndex,
+        stageQuestions: shuffledQ,
+        boardChars: chars.sort(() => 0.5 - Math.random()),
+        selectedChars: [],
+        phrases: [],
+        activePhraseId: null,
+        learningError: null,
+        gameState: 'playing',
+        levelStartTime: Date.now(),
+        isBossMode: false
+      });
+
+      clearInterval(gameTimerInterval);
+      gameTimerInterval = setInterval(() => {
+        if (state.gameState === 'playing' && state.levelStartTime) {
+          const el = document.getElementById('level-timer');
+          if (el) {
+            el.innerText = Math.floor((Date.now() - state.levelStartTime) / 1000);
+          }
+        }
+      }, 1000);
+    }
+
+    function handleCharAction(charId) {
+      if (state.isShaking || state.isVerifying) return;
+      const charObj = state.boardChars.find(c => c.id === charId);
+      if (!charObj) return;
+
+      const isAlreadySelected = state.selectedChars.some(c => c.id === charId);
+      
+      if (isAlreadySelected) {
+        playSound('pop');
+        setState({
+          selectedChars: state.selectedChars.filter(c => c.id !== charId),
+          boardChars: state.boardChars.map(c => c.id === charId ? { ...c, status: 'idle' } : c)
+        });
+        return;
+      }
+
+      if (charObj.status !== 'idle' || state.selectedChars.length >= 4) return;
+
+      playSound('pop');
+      const newSelected = [...state.selectedChars, charObj];
+      
+      setState({
+        selectedChars: newSelected,
+        boardChars: state.boardChars.map(c => c.id === charId ? { ...c, status: 'selected' } : c)
+      });
+
+      if (newSelected.length === 4) {
+        setState({ isVerifying: true });
+        const spelledText = newSelected.map(c => c.char).join('');
+        const matchedQuestion = state.stageQuestions.find(qObj => {
+          if (Array.isArray(qObj.q)) return qObj.q.includes(spelledText);
+          return qObj.q === spelledText;
+        });
+
+        if (matchedQuestion) {
+          playSound('spellSuccess');
+          const newPhraseId = `phrase-${Date.now()}`;
+          setTimeout(() => {
+            setState({
+              boardChars: state.boardChars.map(c => newSelected.some(s => s.id === c.id) ? { ...c, status: 'hidden' } : c),
+              selectedChars: [],
+              isVerifying: false,
+              phrases: [...state.phrases, { id: newPhraseId, q: spelledText, a: matchedQuestion.a, status: 'draggable' }],
+              activePhraseId: newPhraseId 
+            });
+          }, 300);
+        } else {
+          playSound('error');
+          handleWrongAction();
+          
+          const newErrorHistory = [...state.errorHistory];
+          if (!newErrorHistory.some(e => e.type === 'spell' && e.input === spelledText)) {
+            newErrorHistory.push({ 
+              type: 'spell', 
+              input: spelledText, 
+              correctPhrases: state.stageQuestions.map(q => Array.isArray(q.q) ? q.q[0] : q.q),
+              checked: false 
+            });
+          }
+
+          setState({ isShaking: true, errorHistory: newErrorHistory });
+          setTimeout(() => {
+            setState({
+              isShaking: false,
+              boardChars: state.boardChars.map(c => newSelected.some(s => s.id === c.id) ? { ...c, status: 'idle' } : c),
+              selectedChars: [],
+              isVerifying: false
+            });
+          }, 600);
+        }
+      }
+    }
+
+    function handleWrongAction() {
+      const newLives = state.lives - 1;
+      setState({ lives: newLives });
+      if (newLives <= 0) {
+        clearInterval(gameTimerInterval); 
+        setTimeout(() => setState({ gameState: 'gameover' }), 500);
+      }
+    }
+
+    function processClassification(phraseId, targetCategory) {
+      const phrase = state.phrases.find(p => p.id === phraseId);
+      if (!phrase || phrase.status !== 'draggable') return;
+
+      const isCorrect = Array.isArray(phrase.a) ? phrase.a.includes(targetCategory) : phrase.a === targetCategory;
+
+      if (isCorrect) {
+        playSound('categorySuccess');
+        const newPhrases = state.phrases.map(p => p.id === phraseId ? { ...p, status: 'dropped', droppedCat: targetCategory } : p);
+        const newScore = state.score + 50;
+        
+        setState({
+          phrases: newPhrases,
+          activePhraseId: null,
+          score: newScore
+        });
+        
+        const remaining = newPhrases.filter(p => p.status === 'draggable');
+        const hiddenChars = state.boardChars.filter(c => c.status === 'hidden');
+        if (remaining.length === 0 && hiddenChars.length === (state.stageQuestions.length * 4)) {
+          setState({ levelClearAnim: true });
+          playSound('swordFly');
+          setTimeout(proceedToNextStage, 2000);
+        }
+      } else {
+        playSound('error');
+        handleWrongAction();
+        const correctAnsStr = Array.isArray(phrase.a) ? phrase.a.join(' 或 ') : phrase.a;
+        
+        const newErrorHistory = [...state.errorHistory];
+        if (!newErrorHistory.some(e => e.type === 'category' && e.phrase === phrase.q && e.wrongAns === targetCategory)) {
+          newErrorHistory.push({ type: 'category', phrase: phrase.q, wrongAns: targetCategory, correctAns: correctAnsStr, checked: false });
+        }
+
+        setState({
+          learningError: { phrase: phrase.q, wrongAns: targetCategory, correctAns: correctAnsStr },
+          activePhraseId: null,
+          errorHistory: newErrorHistory
+        });
+      }
+    }
+
+    // 將領悟按鈕的內嵌 JS 抽離成獨立函式，避免語法解析錯誤
+    window.dismissLearningError = () => {
+      const pending = state.phrases.find(p => p.status === 'draggable');
+      setState({ learningError: null, activePhraseId: pending ? pending.id : null });
+    };
+
+    function proceedToNextStage() {
+      playSound('clear');
+      clearInterval(gameTimerInterval); 
+      const nextCleared = state.clearedLevels.includes(state.currentLevel) 
+        ? state.clearedLevels 
+        : [...state.clearedLevels, state.currentLevel];
+        
+      const timeTaken = Math.floor((Date.now() - state.levelStartTime) / 1000);
+      const timeBonus = Math.max(0, (60 - timeTaken) * 10); 
+      const lifeBonus = state.lives * 100; 
+      const levelTotalBonus = timeBonus + lifeBonus;
+      const newScore = state.score + levelTotalBonus;
+
+      setState({
+        score: newScore,
+        lastLevelStats: {
+          timeTaken,
+          timeBonus,
+          lifeBonus,
+          levelTotalBonus
+        },
+        clearedLevels: nextCleared,
+        recentlyCleared: state.currentLevel,
+        levelClearAnim: false,
+        gameState: 'transition' 
+      });
+    }
+
+    // --- 魔王戰系統 ---
+    window.startBossFight = () => {
+      playSound('epicStart');
+      startGameFlow();
+      
+      const bQs = gameData.map((level, idx) => {
+         const shuffledQuestions = [...level.questions].sort(() => 0.5 - Math.random());
+         const selectedPairs = [];
+         const usedCategories = new Set();
+
+         for (const q of shuffledQuestions) {
+            const qText = Array.isArray(q.q) ? q.q[0] : q.q;
+            const cat = Array.isArray(q.a) ? q.a[0] : q.a;
+            
+            // 安全機制：過濾掉擁有多重答案的題辭，避免玩家配對時產生死結
+            if (Array.isArray(q.a) && q.a.length > 1) continue;
+
+            if (!usedCategories.has(cat)) {
+               selectedPairs.push({ phrase: qText, category: cat });
+               usedCategories.add(cat);
+            }
+            if (selectedPairs.length === 4) break;
+         }
+
+         if (selectedPairs.length < 4) {
+             selectedPairs.length = 0; 
+             const qs = [...level.questions]
+                 .filter(q => !(Array.isArray(q.a) && q.a.length > 1))
+                 .sort(() => 0.5 - Math.random())
+                 .slice(0, 4);
+             for (const q of qs) {
+                 const qText = Array.isArray(q.q) ? q.q[0] : q.q;
+                 const cat = Array.isArray(q.a) ? q.a[0] : q.a;
+                 selectedPairs.push({ phrase: qText, category: cat });
+             }
+         }
+
+         return {
+            swordIdx: idx,
+            pairs: selectedPairs
+         };
+      });
+
+      state.bossQuestions = bQs;
+      window.setupBossQuestion(0, true);
+    };
+
+    window.setupBossQuestion = (qIndex, isInitial = false) => {
+        const q = state.bossQuestions[qIndex];
+        const phrases = q.pairs.map(p => ({ id: 'p_'+p.phrase, text: p.phrase, type: 'phrase', status: 'idle', cat: p.category })).sort(() => 0.5 - Math.random());
+        const categories = q.pairs.map((p, i) => ({ id: 'c_'+p.category+'_'+i, text: p.category, type: 'category', status: 'idle' })).sort(() => 0.5 - Math.random());
+
+        const updates = {
+            bossPairs: { phrases, categories },
+            selectedBossPhrase: null,
+            selectedBossCategory: null,
+            bossClearedPairs: 0,
+            bossTimer: 20
+        };
+
+        if (isInitial) {
+            updates.gameState = 'boss';
+            updates.bossHp = 9;
+            updates.currentBossQ = 0;
+            updates.lives = 5;
+            updates.bossShake = false;
+            updates.swordFlying = null;
+            updates.showSlash = false;
+            updates.finalUltimateAnim = false;
+            updates.isBossMode = true;
+        }
+
+        setState(updates);
+
+        clearInterval(bossTimerInterval);
+        bossTimerInterval = setInterval(() => {
+            if (state.gameState === 'boss' && state.swordFlying === null && !state.bossShake && state.bossClearedPairs < 4) {
+                const newTimer = state.bossTimer - 1;
+                if (newTimer <= 0) {
+                    playSound('error');
+                    const newLives = state.lives - 1;
+                    if (newLives <= 0) {
+                        clearInterval(bossTimerInterval);
+                        setState({ bossTimer: 0, lives: 0, gameState: 'gameover' });
+                    } else {
+                        setState({ bossTimer: 20, lives: newLives, isShaking: true, selectedBossPhrase: null, selectedBossCategory: null });
+                        setTimeout(() => setState({ isShaking: false }), 500);
+                    }
+                } else {
+                    setState({ bossTimer: newTimer });
+                }
+            }
+        }, 1000);
+    };
+
+    window.handleBossItemClick = (id, type) => {
+      if (state.isShaking || state.swordFlying !== null) return; 
+
+      const item = type === 'phrase' 
+          ? state.bossPairs.phrases.find(p => p.id === id)
+          : state.bossPairs.categories.find(c => c.id === id);
+      
+      if (!item || item.status === 'cleared') return;
+
+      playSound('pop');
+
+      let newSelPhrase = state.selectedBossPhrase;
+      let newSelCat = state.selectedBossCategory;
+
+      if (type === 'phrase') {
+          if (newSelPhrase && newSelPhrase.id === id) newSelPhrase = null;
+          else newSelPhrase = item;
+      } else {
+          if (newSelCat && newSelCat.id === id) newSelCat = null;
+          else newSelCat = item;
+      }
+
+      setState({ selectedBossPhrase: newSelPhrase, selectedBossCategory: newSelCat });
+
+      if (newSelPhrase && newSelCat) {
+          let validCategories = [];
+          for(const l of gameData) {
+              for(const q of l.questions) {
+                  const qt = Array.isArray(q.q) ? q.q[0] : q.q;
+                  if(qt === newSelPhrase.text) {
+                      validCategories = Array.isArray(q.a) ? q.a : [q.a];
+                  }
+              }
+          }
+          const matchFound = validCategories.includes(newSelCat.text) || newSelPhrase.cat === newSelCat.text;
+
+          if (matchFound) {
+             playSound('spellSuccess'); 
+             const newPhrases = state.bossPairs.phrases.map(p => p.id === newSelPhrase.id ? { ...p, status: 'cleared' } : p);
+             const newCats = state.bossPairs.categories.map(c => c.id === newSelCat.id ? { ...c, status: 'cleared' } : c);
+             const newCleared = state.bossClearedPairs + 1;
+
+             setState({
+                 bossPairs: { phrases: newPhrases, categories: newCats },
+                 selectedBossPhrase: null,
+                 selectedBossCategory: null,
+                 bossClearedPairs: newCleared,
+                 score: state.score + 25 
+             });
+             
+             if (newCleared === 4) {
+                 clearInterval(bossTimerInterval);
+                 playSound('swordFly'); 
+                 // 觸發寶劍飛出放大動畫與斬擊圖層
+                 setState({ swordFlying: state.currentBossQ, showSlash: true, levelClearAnim: true }); 
+                 
+                 // 延長等待時間，讓飛出放大動畫 (2秒) 有足夠時間播完再進入下一階段
+                 setTimeout(() => {
+                    playSound('epicStart'); 
+                    setState({ bossShake: true, score: state.score + 100, showSlash: false, levelClearAnim: false }); 
+                    
+                    setTimeout(() => {
+                       const newHp = state.bossHp - 1;
+                       const nextQ = state.currentBossQ + 1;
+                       if (newHp <= 0) {
+                          // 觸發九劍齊發終極大招
+                          playSound('epicStart');
+                          setTimeout(() => playSound('clear'), 800);
+                          // 修正：當血量歸零時，不要將 currentBossQ 推進到不存在的下一題，確保畫面維持渲染
+                          setState({ finalUltimateAnim: true, showSlash: true, bossHp: 0, bossShake: false, swordFlying: null, levelClearAnim: false });
+                          
+                          setTimeout(() => {
+                             setState({ gameState: 'bossKillVideo', finalUltimateAnim: false, showSlash: false });
+                          }, 4500);
+                       } else {
+                          setState({ bossHp: newHp, currentBossQ: nextQ, bossShake: false, swordFlying: null });
+                          window.setupBossQuestion(nextQ);
+                       }
+                    }, 600); 
+                 }, 1800); // 等待飛出動畫接近尾聲時觸發震動
+             }
+          } else {
+             playSound('error');
+             
+             const newErrorHistory = [...state.errorHistory];
+             if (!newErrorHistory.some(e => e.type === 'boss' && e.phrase === newSelPhrase.text && e.wrongAns === newSelCat.text)) {
+               newErrorHistory.push({
+                 type: 'boss',
+                 phrase: newSelPhrase.text,
+                 wrongAns: newSelCat.text,
+                 correctAns: newSelPhrase.cat,
+                 checked: false
+               });
+             }
+
+             setState({ 
+                 isShaking: true, 
+                 selectedBossPhrase: null,
+                 selectedBossCategory: null,
+                 errorHistory: newErrorHistory,
+                 bossTimer: Math.max(1, state.bossTimer - 3) 
+             });
+             setTimeout(() => setState({ isShaking: false }), 500);
+          }
+      }
+    };
+
+    window.toggleErrorCheck = (index) => {
+      playSound('pop');
+      // 直接修改狀態，但不觸發全域的 setState (避免畫面重繪跳動)
+      state.errorHistory[index].checked = !state.errorHistory[index].checked;
+      const isChecked = state.errorHistory[index].checked;
+
+      // 1. 局部更新該項目的外觀
+      const itemEl = document.getElementById(`review-item-${index}`);
+      if (itemEl) {
+        if (isChecked) {
+          itemEl.classList.remove('border-[#5c4033]', 'shadow-md');
+          itemEl.classList.add('border-[#8c8273]', 'opacity-60', 'grayscale-[30%]');
+        } else {
+          itemEl.classList.remove('border-[#8c8273]', 'opacity-60', 'grayscale-[30%]');
+          itemEl.classList.add('border-[#5c4033]', 'shadow-md');
+        }
+      }
+
+      // 2. 局部更新打勾按鈕的圖示與顏色
+      const btnEl = document.getElementById(`review-btn-${index}`);
+      const iconEl = document.getElementById(`review-icon-${index}`);
+      if (btnEl && iconEl) {
+        if (isChecked) {
+          btnEl.classList.remove('text-[#8b2626]', 'hover:scale-110');
+          btnEl.classList.add('text-[#8c8273]');
+          iconEl.className = 'ph-fill ph-check-square';
+        } else {
+          btnEl.classList.remove('text-[#8c8273]');
+          btnEl.classList.add('text-[#8b2626]', 'hover:scale-110');
+          iconEl.className = 'ph-bold ph-square';
+        }
+      }
+
+      // 3. 結算數量並更新對應的按鈕狀態
+      const uncheckedCount = state.errorHistory.filter(e => !e.checked).length;
+      const allChecked = uncheckedCount === 0;
+
+      const uncheckCountEl = document.getElementById('unchecked-count');
+      if (uncheckCountEl) {
+        if (uncheckedCount > 0) {
+          uncheckCountEl.innerHTML = `待確認: ${uncheckedCount}`;
+          uncheckCountEl.style.display = 'inline-block';
+        } else {
+          uncheckCountEl.style.display = 'none';
+        }
+      }
+
+      // 更新地圖上的未確認數字標籤
+      const mapUncheckCountEl = document.getElementById('map-unchecked-count');
+      if (mapUncheckCountEl) {
+        if (uncheckedCount > 0) {
+          mapUncheckCountEl.innerHTML = uncheckedCount;
+          mapUncheckCountEl.style.display = 'inline-block';
+        } else {
+          mapUncheckCountEl.style.display = 'none';
+        }
+      }
+
+      const finalBtnContainer = document.getElementById('final-action-btn-container');
+      if (finalBtnContainer) {
+        if (allChecked) {
+          finalBtnContainer.innerHTML = `
+            <button onclick="setState({gameState: 'endingVideo', errorHistory: []})" class="w-full bg-[#b8860b] hover:bg-[#3e2723] hover:text-[#faf6ed] text-[#3e2723] py-4 px-6 text-xl md:text-2xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded animate-pulse">
+              回憶完成，觀看結局 ⏭
+            </button>
+          `;
+        } else {
+          finalBtnContainer.innerHTML = `
+            <button disabled class="w-full bg-[#eaddc5] text-[#8c8273] py-4 px-6 text-xl md:text-2xl font-black border-2 border-[#8c8273] shadow-none cursor-not-allowed rounded flex items-center justify-center gap-2">
+              <i class="ph-bold ph-lock"></i> 請先打勾確認所有回憶
+            </button>
+          `;
+        }
+      }
+
+      // 更新通用卷軸的關閉按鈕
+      const genericBtnContainer = document.getElementById('generic-modal-btn-container');
+      if (genericBtnContainer) {
+        if (allChecked) {
+          genericBtnContainer.innerHTML = `
+            <button onclick="setState({showReviewModal: false})" class="text-lg font-black text-[#faf6ed] bg-[#b8860b] hover:bg-[#8b2626] flex items-center gap-2 border-2 border-[#5c4033] px-6 py-3 shadow-md active:translate-y-1 active:shadow-none transition-all rounded animate-pulse">
+              <i class="ph-bold ph-check-circle text-2xl"></i> 回憶完畢 (關閉)
+            </button>
+          `;
+        } else {
+          genericBtnContainer.innerHTML = `
+            <button disabled class="text-lg font-black text-[#8c8273] bg-[#eaddc5] flex items-center gap-2 border-2 border-[#8c8273] px-6 py-3 shadow-none cursor-not-allowed rounded">
+              <i class="ph-bold ph-lock text-2xl"></i> 請先打勾確認所有回憶
+            </button>
+          `;
+        }
+      }
+
+      // 更新修羅場地圖的魔王戰按鈕
+      const bossStartContainer = document.getElementById('boss-start-btn-container');
+      if (bossStartContainer) {
+        if (allChecked) {
+          bossStartContainer.innerHTML = `
+            <button onclick="setState({gameState: 'bossIntro'})" class="w-full max-w-2xl flex items-center justify-center gap-3 text-xl md:text-3xl font-black text-[#faf6ed] bg-[#8b2626] hover:bg-[#b8860b] hover:text-[#3e2723] px-8 py-5 border-2 border-[#5c4033] shadow-[0_0_20px_rgba(139,38,38,0.6)] animate-pulse active:scale-95 transition-all rounded-md">
+              <i class="ph-fill ph-skull"></i> 最終決戰：討伐亂字魔王！
+            </button>
+          `;
+        } else {
+          bossStartContainer.innerHTML = `
+            <button disabled class="w-full max-w-2xl flex items-center justify-center gap-3 text-xl md:text-3xl font-black text-[#8c8273] bg-[#eaddc5] border-2 border-[#8c8273] shadow-[0_0_20px_rgba(0,0,0,0.2)] opacity-90 px-8 py-5 cursor-not-allowed transition-all rounded-md">
+              <i class="ph-bold ph-lock"></i> 閱讀並勾選完回憶，方可挑戰魔王
+            </button>
+          `;
+        }
+      }
+
+      // 更新結算畫面的魔王戰按鈕
+      const transitionBossContainer = document.getElementById('transition-boss-btn-container');
+      if (transitionBossContainer) {
+        if (allChecked) {
+          transitionBossContainer.innerHTML = `
+            <button onclick="setState({gameState: 'bossIntro'})" class="w-full bg-[#8b2626] text-[#faf6ed] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 animate-pulse rounded">
+              ⚔️ 迎戰亂字魔王！
+            </button>
+          `;
+        } else {
+          transitionBossContainer.innerHTML = `
+            <button disabled class="w-full bg-[#eaddc5] text-[#8c8273] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#8c8273] shadow-none cursor-not-allowed rounded flex items-center justify-center gap-2">
+              <i class="ph-bold ph-lock"></i> 勾選完回憶方可挑戰魔王
+            </button>
+          `;
+        }
+      }
+    };
+
+    window.handleDragStart = (e, phraseId) => {
+      e.dataTransfer.setData('phraseId', phraseId);
+      setState({ activePhraseId: phraseId });
+    };
+
+    window.allowDrop = (e) => e.preventDefault();
+
+    window.handleDrop = (e, cat) => {
+      e.preventDefault();
+      const phraseId = e.dataTransfer.getData('phraseId');
+      processClassification(phraseId, cat);
+    };
+
+    window.clickCategory = (cat) => {
+      if (state.activePhraseId) {
+        processClassification(state.activePhraseId, cat);
+      }
+    };
+
+    window.enterMap = (e) => {
+      if (e) e.stopPropagation();
+      clearInterval(gameTimerInterval); 
+      clearInterval(bossTimerInterval);
+      if (state.gameState === 'story' || state.gameState === 'instructions') {
+        playSound('epicStart');
+      } else {
+        playSound('pop');
+      }
+      state.gameState = 'start';
+      if (!state.isMusicPlaying) {
+        state.isMusicPlaying = true;
+      }
+      window.updateMusic();
+      render();
+    };
+
+    // --- 渲染畫面 ---
+    function render() {
+      const app = document.getElementById('app');
+      
+      const modalContainer = document.getElementById('review-modal-container');
+      const savedScrollTop = modalContainer ? modalContainer.scrollTop : 0;
+
+      // 新增：記憶結算畫面中清單的滾動位置
+      const listContainer = document.getElementById('review-list-container');
+      const savedListScrollTop = listContainer ? listContainer.scrollTop : 0;
+      
+      app.innerHTML = ''; 
+
+      const musicBtn = state.gameState === 'intro' ? '' : `
+        <div class="fixed top-2 right-2 md:top-4 md:right-4 z-[60]">
+          <button onclick="toggleMusic(event)" class="bg-[#faf6ed]/90 backdrop-blur-sm p-2 md:p-3 rounded-full shadow-lg text-[#3e2723] border-2 border-[#5c4033] flex items-center gap-2 transition-all active:translate-y-1 active:shadow-none">
+            <i class="${state.isMusicPlaying ? 'ph-bold ph-music-notes animate-pulse text-xl' : 'ph-bold ph-music-notes-simple opacity-50 text-xl'}"></i>
+            ${(state.gameState === 'story' || state.gameState === 'instructions' || state.gameState === 'victory') && !state.isMusicPlaying ? '<span class="text-xs md:text-sm font-black animate-pulse px-1 text-[#8b2626]">開啟戰歌</span>' : ''}
+          </button>
+        </div>
+      `;
+
+      // 封裝敗北紀錄的渲染邏輯 (支援點擊展開、打勾)
+      const renderErrorItems = () => {
+        return state.errorHistory.map((e, index) => {
+          let titleHtml = '';
+          let detailHtml = '';
+          
+          if (e.type === 'boss') {
+            titleHtml = `💀 魔王戰配對：「${e.phrase}」`;
+            detailHtml = `
+              <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 font-bold mb-3">
+                <span class="text-[#5c4033] line-through text-sm md:text-base">誤選：${e.wrongAns}</span>
+                <span class="text-[#faf6ed] text-lg md:text-xl tracking-wide bg-[#3e2723] px-3 py-1 border-l-4 border-[#b8860b]">正解：${e.correctAns}</span>
+              </div>
+              <div class="text-sm md:text-base text-[#3e2723] font-bold">
+                <i class="ph-bold ph-book-open text-[#8b2626] mr-1"></i> 
+                <b>奧義解析：</b>${phraseDict[e.phrase] || `此為【${e.correctAns}】之用辭。`}
+              </div>
+            `;
+          } else if (e.type === 'category') {
+            titleHtml = `⚠️ 陣法歸類：「${e.phrase}」`;
+            detailHtml = `
+              <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 font-bold mb-3">
+                <span class="text-[#5c4033] line-through text-sm md:text-base">誤判：${e.wrongAns}</span>
+                <span class="text-[#faf6ed] text-lg md:text-xl tracking-wide bg-[#3e2723] px-3 py-1 border-l-4 border-[#b8860b]">正解：${e.correctAns}</span>
+              </div>
+              <div class="text-sm md:text-base text-[#3e2723] font-bold">
+                <i class="ph-bold ph-book-open text-[#8b2626] mr-1"></i> 
+                <b>奧義解析：</b>${phraseDict[e.phrase] || `用於【${e.correctAns}】之用辭。`}
+              </div>
+            `;
+          } else {
+            titleHtml = `❌ 拼寫失誤：「${e.input}」`;
+            const matches = e.correctPhrases.map(p => {
+              let overlap = 0;
+              for(let char of e.input) { if(p.includes(char)) overlap++; }
+              return { phrase: p, overlap };
+            }).filter(item => item.overlap > 0).sort((a, b) => b.overlap - a.overlap);
+
+            const matchHTML = matches.map(m => `
+              <div class="pl-3 border-l-2 border-[#8b2626]">
+                <div class="font-black text-[#3e2723] text-lg md:text-xl tracking-widest">【${m.phrase}】</div>
+                <div class="text-[#5c4033] text-sm md:text-base mt-1 font-bold">${phraseDict[m.phrase] || '此為正確題辭。'}</div>
+              </div>
+            `).join('<div class="my-2 border-b border-dashed border-[#8c8273]"></div>');
+            
+            detailHtml = `
+              <div class="mb-3 text-[#8b2626] font-black border-b border-[#5c4033] pb-2 flex items-center gap-2">
+                <i class="ph-fill ph-warning-circle text-xl"></i> 你是否企圖結出以下奧義？
+              </div>
+              <div class="space-y-3 mt-3">
+                ${matchHTML}
+              </div>
+            `;
+          }
+
+          // 加入 id 標籤，配合局部更新功能
+          return `
+            <div id="review-item-${index}" class="review-item bg-[#faf6ed] rounded border-2 ${e.checked ? 'border-[#8c8273] opacity-60 grayscale-[30%]' : 'border-[#5c4033] shadow-md'} mb-4 transition-all">
+              <div class="p-4 md:p-5 flex items-center gap-3 md:gap-4 font-black">
+                <div class="flex-1 text-lg md:text-xl text-[#3e2723] break-all">
+                   ${titleHtml}
+                </div>
+                <button id="review-btn-${index}" onclick="toggleErrorCheck(${index})" class="flex-shrink-0 text-4xl transition-colors ${e.checked ? 'text-[#8c8273]' : 'text-[#8b2626] hover:scale-110'}">
+                  <i id="review-icon-${index}" class="${e.checked ? 'ph-fill ph-check-square' : 'ph-bold ph-square'}"></i>
+                </button>
+              </div>
+              <div class="p-4 md:p-5 border-t-2 border-dashed border-[#5c4033] bg-[rgba(139,38,38,0.05)] text-left">
+                 ${detailHtml}
+              </div>
+            </div>
+          `;
+        }).join('');
+      };
+
+      // 計算全域的回憶閱讀進度
+      const allCheckedGlobal = state.errorHistory.length === 0 || state.errorHistory.every(e => e.checked);
+      const uncheckedCountGlobal = state.errorHistory.filter(e => !e.checked).length;
+
+      const reviewModalHTML = state.showReviewModal && state.gameState !== 'postBossReview' ? `
+        <div id="review-modal-container" class="fixed inset-0 bg-[#111]/80 backdrop-blur-md z-[200] flex flex-col items-center p-4 md:p-8 overflow-y-auto">
+          <div class="w-full max-w-4xl battle-box p-6 md:p-10 relative">
+            <button onclick="setState({showReviewModal: false})" class="absolute top-4 right-4 bg-[#3e2723] text-[#faf6ed] p-2 rounded transition-colors shadow-md active:translate-y-1 active:shadow-none border border-[#5c4033]">
+              <i class="ph-bold ph-x text-xl"></i>
+            </button>
+            <h2 class="text-3xl md:text-4xl font-black text-[#3e2723] mb-2 flex items-center justify-center gap-3 border-b-2 border-[#5c4033] pb-4">
+              <i class="ph-fill ph-scroll text-5xl text-[#8b2626]"></i> 英雄旅程回憶
+            </h2>
+            <p class="text-center font-bold text-[#5c4033] mb-8 mt-4">旅程的價值在於正視挫折。請仔細閱讀下方解析，領悟後請點擊打勾。</p>
+            
+            ${state.errorHistory.length === 0 ? '<p class="text-2xl font-black text-[#8b2626] text-center my-12">無破綻紀錄！完美無瑕！</p>' : ''}
+            
+            <div class="space-y-2">
+              ${renderErrorItems()}
+            </div>
+            
+            ${state.errorHistory.length > 0 ? `
+              <div id="generic-modal-btn-container" class="mt-10 flex justify-center">
+                ${allCheckedGlobal ? `
+                  <button onclick="setState({showReviewModal: false})" class="text-lg font-black text-[#faf6ed] bg-[#b8860b] hover:bg-[#8b2626] flex items-center gap-2 border-2 border-[#5c4033] px-6 py-3 shadow-md active:translate-y-1 active:shadow-none transition-all rounded animate-pulse">
+                    <i class="ph-bold ph-check-circle text-2xl"></i> 回憶完畢 (關閉)
+                  </button>
+                ` : `
+                  <button disabled class="text-lg font-black text-[#8c8273] bg-[#eaddc5] flex items-center gap-2 border-2 border-[#8c8273] px-6 py-3 shadow-none cursor-not-allowed rounded">
+                    <i class="ph-bold ph-lock text-2xl"></i> 請先打勾確認所有回憶
+                  </button>
+                `}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      ` : '';
+
+      let content = '';
+
+      const fireHtml = Array.from({length: 5}).map((_, i) => `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" class="w-5 h-5 md:w-6 md:h-6 fire-icon ${i < state.lives ? 'filled' : ''}"><path d="M211.88,142.36a94.13,94.13,0,0,1-30.82,69.51,6,6,0,0,1-8.5-8.4,79.52,79.52,0,0,0,15.65-80c-5.74-13.62-16-24-27.17-34.42C148.4,77,136.21,65.65,133.48,46.12a6,6,0,0,0-11.83-1.07C118.82,57.17,110.15,64.21,102.31,70.57c-13.1,10.61-24.84,20.14-30.68,36.23a66.27,66.27,0,0,0-3.32,23A39.46,39.46,0,0,1,85.1,109.11a6,6,0,1,0-10.2-6.22,51.81,51.81,0,0,0-15-50.69A94.49,94.49,0,0,0,44.12,142.36a86,86,0,0,0,167.76,0ZM128,214A54,54,0,1,1,182,160,54.06,54.06,0,0,1,128,214Z"></path></svg>
+      `);
+
+      if (state.gameState === 'intro') {
+        content = `
+          <div class="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden cursor-pointer" onclick="goToStory(event)">
+            <img src="第一頁.png" alt="背景" onerror="this.src='第一頁.jpg'" class="w-full h-full object-cover absolute inset-0 z-0 opacity-40 blur-md" />
+            <img src="第一頁.png" alt="奪還題辭大作戰" onerror="this.src='第一頁.jpg'" class="w-full max-w-6xl max-h-screen object-contain relative z-10 drop-shadow-2xl" />
+          </div>
+        `;
+
+      } else if (state.gameState === 'story') {
+        content = `
+          <div class="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden cursor-pointer" onclick="enterVideo(event)">
+            <img src="第二頁.png" alt="背景" onerror="this.src='第二頁.jpg'" class="w-full h-full object-cover absolute inset-0 z-0 opacity-40 blur-md pointer-events-none" />
+            <img src="第二頁.png" alt="劇情介紹" onerror="this.src='第二頁.jpg'" class="w-full max-w-6xl max-h-screen object-contain relative z-10 drop-shadow-2xl pointer-events-none" />
+          </div>
+        `;
+
+      } else if (state.gameState === 'video') {
+        content = `
+          <div class="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden">
+            <video 
+              src="過場動畫.mp4" 
+              autoplay 
+              controls
+              playsinline
+              onended="videoEnded('intro')"
+              onerror="console.log('過場動畫.mp4 載入失敗，請手動點擊跳過');"
+              class="w-full h-full max-h-screen object-contain absolute inset-0 z-10"
+            ></video>
+            
+            <button onclick="videoEnded('intro')" class="absolute top-4 right-4 md:top-8 md:right-8 z-20 bg-black/60 text-white border-2 border-white px-4 py-2 font-bold text-sm md:text-base hover:bg-[#8b2626] transition-colors shadow-lg active:translate-y-1 active:shadow-none rounded">
+              跳過動畫 ⏭
+            </button>
+          </div>
+        `;
+
+      } else if (state.gameState === 'instructions') {
+        content = `
+          <div class="min-h-screen bg-black flex flex-col md:flex-row items-center justify-center p-4 md:p-8 relative overflow-hidden">
+            <div class="fixed inset-0 z-0 pointer-events-none">
+              <img src="遊玩畫面.png" onerror="this.src='遊玩畫面.jpg'" class="w-full h-full object-cover opacity-40 grayscale" />
+              <div class="absolute inset-0 bg-black/50"></div>
+            </div>
+
+            <div class="relative z-10 w-full max-w-6xl flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 animate-pop-in">
+              <!-- 左側：英雄主角 -->
+              <div class="w-full md:w-1/2 flex justify-center items-center">
+                <img src="英雄主角.png" alt="英雄" onerror="this.src='英雄主角.jpg'" class="w-48 sm:w-64 md:w-80 lg:w-[450px] object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.2)]" />
+              </div>
+
+              <!-- 右側：修羅法則 (遊戲說明) - 調整為宣紙配色 -->
+              <div class="w-full md:w-1/2 flex justify-center">
+                <div class="battle-box p-6 md:p-10 w-full max-w-lg relative">
+                  <div class="absolute -top-5 -left-4 bg-[#8b2626] text-[#faf6ed] px-5 py-2 font-black text-xl md:text-2xl transform -rotate-3 border-2 border-[#5c4033] shadow-[4px_4px_0_rgba(92,64,51,0.5)]">
+                    修羅法則
+                  </div>
+                  
+                  <div class="mt-6 flex flex-col gap-6">
+                    <div class="flex items-start gap-4">
+                      <div class="w-8 h-8 md:w-10 md:h-10 shrink-0 bg-[#3e2723] text-[#b8860b] border-2 border-[#5c4033] rounded-full flex items-center justify-center font-black text-xl shadow-[2px_2px_0_rgba(184,134,11,0.5)]">1</div>
+                      <div>
+                        <h3 class="text-xl md:text-2xl font-black text-[#3e2723] mb-1">凝氣成劍</h3>
+                        <p class="text-sm md:text-base font-bold text-[#5c4033]">點擊字盤中散亂的文字，拼湊出正確的「四字題辭」。</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4">
+                      <div class="w-8 h-8 md:w-10 md:h-10 shrink-0 bg-[#3e2723] text-[#b8860b] border-2 border-[#5c4033] rounded-full flex items-center justify-center font-black text-xl shadow-[2px_2px_0_rgba(184,134,11,0.5)]">2</div>
+                      <div>
+                        <h3 class="text-xl md:text-2xl font-black text-[#3e2723] mb-1">陣法歸位</h3>
+                        <p class="text-sm md:text-base font-bold text-[#5c4033]">將拼好的奧義題辭，拖曳或點擊歸類至兩側對應的「適用情境」陣法中。</p>
+                      </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                      <div class="w-8 h-8 md:w-10 md:h-10 shrink-0 bg-[#3e2723] text-[#b8860b] border-2 border-[#5c4033] rounded-full flex items-center justify-center font-black text-xl shadow-[2px_2px_0_rgba(184,134,11,0.5)]">3</div>
+                      <div>
+                        <h3 class="text-xl md:text-2xl font-black text-[#3e2723] mb-1">九劍誅魔</h3>
+                        <p class="text-sm md:text-base font-bold text-[#5c4033]">集滿九劍迎戰魔王！每回合需在 <span class="text-[#8b2626] font-black bg-[rgba(139,38,38,0.1)] px-1 rounded">20秒內</span> 將四句題辭與場合完美配對。</p>
+                      </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                      <div class="w-8 h-8 md:w-10 md:h-10 shrink-0 bg-[#8b2626] text-[#faf6ed] border-2 border-[#5c4033] rounded-full flex items-center justify-center font-black text-xl shadow-[2px_2px_0_rgba(92,64,51,0.5)]">!</div>
+                      <div>
+                        <h3 class="text-xl md:text-2xl font-black text-[#8b2626] mb-1">生死一瞬</h3>
+                        <p class="text-sm md:text-base font-bold text-[#5c4033]">配對錯誤會倒扣時間，超時或歸類失敗皆扣除「魂火」。(點擊已選文字可取消)</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button onclick="enterMap(event)" class="mt-8 w-full bg-[#3e2723] hover:bg-[#b8860b] hover:text-[#3e2723] text-[#faf6ed] py-4 text-xl md:text-2xl font-black border-2 border-[#5c4033] shadow-[4px_4px_0_rgba(92,64,51,0.6)] active:translate-y-[4px] active:shadow-none transition-all flex justify-center items-center gap-2 rounded">
+                    <i class="ph-bold ph-fire"></i> 領悟法則，踏入修羅場！
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else if (state.gameState === 'start') {
+        if (state.recentlyCleared !== null) {
+          setTimeout(() => playSound('stamp'), 100);
+          setTimeout(() => setState({ recentlyCleared: null }), 900);
+        }
+
+        const levelsHtml = gameData.map((level, idx) => {
+          const isCleared = state.clearedLevels.includes(idx);
+          const isJustCleared = state.recentlyCleared === idx;
+          const rwd = level.reward;
+          
+          return `
+            <button onclick="startLevel(${idx})" class="battle-box p-4 md:p-6 flex flex-col items-center justify-center relative transition-all hover:-translate-y-1 hover:shadow-2xl active:translate-y-1 active:shadow-md ${isCleared && !isJustCleared ? 'opacity-80 grayscale-[30%]' : 'cursor-pointer'}">
+              ${isCleared && rwd ? `
+                <div class="absolute inset-0 bg-[#faf6ed]/70 backdrop-blur-[2px] flex items-center justify-center z-10 rounded-[4px] pointer-events-none overflow-hidden">
+                  <div class="bg-[#3e2723] px-3 py-2 flex flex-col items-center shadow-[4px_4px_0_${rwd.colorHex}] border border-[${rwd.colorHex}] ${isJustCleared ? 'animate-stamp' : 'transform -rotate-6'} z-20 rounded">
+                    <div class="text-[12px] text-[#b8860b] border-b border-[#5c4033] pb-0.5 w-full text-center tracking-widest mb-1 font-bold">已獲寶劍</div>
+                    <div class="h-28 w-28 md:h-36 md:w-36 flex items-center justify-center -my-1 drop-shadow-lg">
+                      ${getSwordSvg(rwd.swordType, rwd.colorHex)}
+                    </div>
+                    <div class="text-sm md:text-base font-black whitespace-nowrap mt-1 tracking-widest font-calligraphy" style="color: ${rwd.colorHex}">
+                      ${rwd.name}
+                    </div>
+                  </div>
+                </div>
+              ` : ''}
+              <div class="p-4 md:p-5 mb-3 md:mb-4 border border-[#5c4033] shadow-inner ${level.bgColor} rounded-md bg-opacity-30 backdrop-blur-sm">
+                <i class="ph-bold ${level.icon} text-4xl md:text-5xl ${level.iconColor}"></i>
+              </div>
+              <h3 class="font-black text-[#3e2723] text-center text-[14px] md:text-lg leading-snug tracking-wider">${level.levelName}</h3>
+            </button>
+          `;
+        }).join('');
+
+        content = `
+          <div class="min-h-screen flex flex-col items-center py-8 px-4 relative">
+            <div class="fixed inset-0 z-0 pointer-events-none">
+              <img src="遊玩畫面.png" alt="背景" onerror="this.src='遊玩畫面.jpg'" class="w-full h-full object-cover opacity-90" />
+            </div>
+
+            <div class="w-full max-w-4xl text-center mb-8 relative z-10">
+              <h1 class="text-3xl md:text-5xl font-black mb-4 text-[#3e2723] tracking-widest flex items-center justify-center gap-3 drop-shadow-md">
+                <i class="ph-fill ph-map-trifold hidden md:block text-5xl text-[#8b2626]"></i> 題辭修羅場
+              </h1>
+              <h2 class="text-sm md:text-xl font-bold text-[#faf6ed] bg-[#3e2723]/90 backdrop-blur inline-block px-6 py-2 border border-[#5c4033] shadow-md rounded">
+                點擊陣法，燃燒你的國學之魂 ⚔️
+              </h2>
+              <div class="mt-4 text-sm md:text-base font-black text-[#3e2723] bg-[#faf6ed]/90 backdrop-blur inline-block px-4 py-1 border border-[#5c4033] shadow-sm rounded">
+                戰力：<span class="text-2xl text-[#8b2626] ml-1">${state.score}</span>
+              </div>
+            </div>
+
+            ${state.errorHistory.length > 0 ? `
+              <button onclick="setState({showReviewModal: true})" class="mb-8 flex items-center gap-2 text-base md:text-xl font-black text-[#faf6ed] bg-[#8b2626] hover:bg-[#3e2723] px-6 py-3 border border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all relative z-10 rounded">
+                <i class="ph-bold ph-scroll text-2xl"></i> 英雄旅程回憶 <span id="map-unchecked-count" class="bg-[#faf6ed] text-[#8b2626] px-2 py-0.5 ml-2 rounded" style="display: ${uncheckedCountGlobal > 0 ? 'inline-block' : 'none'}">${uncheckedCountGlobal}</span>
+              </button>
+            ` : ''}
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-4xl relative z-10">
+              ${levelsHtml}
+            </div>
+            
+            ${state.clearedLevels.length === gameData.length ? `
+              <div class="mt-12 w-full max-w-4xl flex flex-col items-center gap-6 relative z-10">
+                <div id="boss-start-btn-container" class="w-full flex justify-center">
+                  ${uncheckedCountGlobal > 0 ? `
+                    <button disabled class="w-full max-w-2xl flex items-center justify-center gap-3 text-xl md:text-3xl font-black text-[#8c8273] bg-[#eaddc5] border-2 border-[#8c8273] shadow-[0_0_20px_rgba(0,0,0,0.2)] opacity-90 px-8 py-5 cursor-not-allowed transition-all rounded-md">
+                      <i class="ph-bold ph-lock"></i> 閱讀並勾選完回憶，方可挑戰魔王
+                    </button>
+                  ` : `
+                    <button onclick="setState({gameState: 'bossIntro'})" class="w-full max-w-2xl flex items-center justify-center gap-3 text-xl md:text-3xl font-black text-[#faf6ed] bg-[#8b2626] hover:bg-[#b8860b] hover:text-[#3e2723] px-8 py-5 border-2 border-[#5c4033] shadow-[0_0_20px_rgba(139,38,38,0.6)] animate-pulse active:scale-95 transition-all rounded-md">
+                      <i class="ph-fill ph-skull"></i> 最終決戰：討伐亂字魔王！
+                    </button>
+                  `}
+                </div>
+                <button onclick="setState({clearedLevels: [], score: 0, recentlyCleared: null})" class="flex items-center gap-2 text-sm md:text-base font-bold text-[#5c4033] hover:text-[#8b2626] transition-all bg-[#faf6ed]/80 backdrop-blur px-4 py-2 border border-[#5c4033] rounded">
+                  <i class="ph-bold ph-arrow-counter-clockwise"></i> 放棄九劍，重置修練
+                </button>
+              </div>
+            ` : `
+              <div class="mt-12 flex flex-col items-center gap-4 w-full relative z-10">
+                <button onclick="setState({gameState: 'bossIntro'})" class="flex items-center justify-center gap-2 text-sm md:text-lg font-black text-[#faf6ed] bg-[#3e2723] hover:bg-[#8b2626] transition-all px-6 py-3 border border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none w-full max-w-sm rounded">
+                  <i class="ph-fill ph-skull"></i> [捷徑] 直接迎戰亂字魔王
+                </button>
+                
+                ${state.clearedLevels.length > 0 ? `
+                  <button onclick="setState({clearedLevels: [], score: 0, recentlyCleared: null})" class="flex items-center justify-center gap-2 text-sm md:text-lg font-black text-[#3e2723] hover:text-[#faf6ed] hover:bg-[#3e2723] transition-all bg-[#faf6ed]/90 backdrop-blur px-6 py-3 border border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none w-full max-w-sm rounded">
+                    <i class="ph-bold ph-sword"></i> 重置修練，再次拔劍
+                  </button>
+                ` : ''}
+              </div>
+            `}
+          </div>
+        `;
+
+      } else if (state.gameState === 'bossIntro') {
+        content = `
+          <div class="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden">
+            <img src="遊玩畫面.png" onerror="this.src='遊玩畫面.jpg'" class="absolute inset-0 w-full h-full object-cover opacity-30 grayscale pointer-events-none" />
+            <div class="absolute inset-0 bg-red-900/40 mix-blend-multiply pointer-events-none"></div>
+
+            <div class="relative z-10 text-center flex flex-col items-center px-4 max-w-4xl animate-pop-in pt-4 md:pt-8 w-full">
+               <div class="relative flex justify-center items-center w-full mb-2">
+                 <div class="absolute inset-0 bg-red-700 rounded-full blur-[80px] md:blur-[120px] opacity-50 animate-pulse pointer-events-none"></div>
+                 <img src="魔王.png" alt="魔王" onerror="this.src='魔王.jpg'" class="relative w-64 md:w-[420px] lg:w-[500px] max-h-[45vh] md:max-h-[50vh] object-contain drop-shadow-[0_0_40px_#8b2626] z-10 transform hover:scale-105 transition-transform duration-700" />
+               </div>
+               
+               <h2 class="text-4xl md:text-6xl font-black text-[#faf6ed] tracking-widest mb-6 drop-shadow-[0_0_20px_#8b2626] relative z-20 -mt-6 md:-mt-10">
+                 亂字魔王 降臨
+               </h2>
+               
+               <div class="bg-[#3e2723]/90 backdrop-blur border-l-4 border-[#8b2626] p-5 md:p-8 mb-8 text-left shadow-lg relative z-20 max-w-3xl rounded-r">
+                 <div class="text-base md:text-2xl text-[#faf6ed] font-bold leading-loose">
+                   <p class="mb-6">你已集齊九把名劍，但世界的秩序尚未恢復。</p>
+                   <p>
+                     魔王將發動九重陣法，<br>
+                     每回合需在 <span class="text-[#8b2626] font-black bg-[#faf6ed] px-2 rounded">20秒內</span> 將四句題辭與場合完美配對！<br>
+                     <span class="inline-block my-3">唯有 <span class="text-[#8b2626] text-xl md:text-3xl mx-2 font-black bg-[#faf6ed] px-3 py-1.5 rounded shadow-sm">連續破解九重陣法</span> 驅使寶劍歸宗，</span><br>
+                     才能徹底將其斬殺！
+                   </p>
+                 </div>
+               </div>
+
+               <button onclick="startBossFight()" class="bg-[#8b2626] hover:bg-[#b8860b] hover:text-[#3e2723] text-[#faf6ed] py-4 px-8 md:px-12 text-xl md:text-3xl font-black border-2 border-[#5c4033] shadow-[0_0_20px_rgba(139,38,38,0.6)] transition-all flex items-center justify-center gap-3 active:scale-95 relative z-20 mb-4 rounded-md">
+                 <i class="ph-bold ph-sword"></i> 萬劍歸宗，斬妖除魔！
+               </button>
+            </div>
+          </div>
+        `;
+
+      } else if (state.gameState === 'boss') {
+        const qData = state.bossQuestions[state.currentBossQ];
+        if (!qData || !state.bossPairs) return '';
+        
+        // 取得當前回合的寶劍資料
+        const currentLvlData = gameData[state.currentBossQ];
+        const bossSwordSvg = currentLvlData ? getSwordSvg(currentLvlData.reward.swordType, currentLvlData.reward.colorHex) : '';
+        const bossSwordColor = currentLvlData ? currentLvlData.reward.colorHex : '#8b2626';
+
+        // 定義魔王戰九劍專屬玄幻奧義名稱
+        const ultimateSkills = [
+          "奧義・陰陽相濟", // 1. 龍鳳雙劍
+          "奧義・鶴舞千秋", // 2. 福壽金刃
+          "奧義・仁心鎮嶽", // 3. 濟世重劍
+          "奧義・財湧八方", // 4. 聚寶錢劍
+          "奧義・墨舞煙波", // 5. 行雲水刃
+          "奧義・紫電破空", // 6. 雷霆戰劍
+          "奧義・九泉寂滅", // 7. 幽冥暗劍
+          "奧義・碎影凋零", // 8. 落雨殘劍
+          "奧義・沐恩成蔭"  // 9. 桃李雨刃
+        ];
+        const currentSkillName = ultimateSkills[state.currentBossQ] || "終極奧義";
+
+        const bossHpNodesHtml = gameData.map((lvl, i) => {
+          const isBroken = i < state.currentBossQ;
+          const isHit = state.swordFlying === i; 
+          const swordHtml = getSwordSvg(lvl.reward.swordType, lvl.reward.colorHex);
+          
+          const swordAndTextHtml = `
+            <span class="absolute left-1/2 transform -translate-x-1/2 bottom-[calc(100%+6px)] md:bottom-[calc(100%+12px)] text-[12px] md:text-[18px] tracking-widest font-calligraphy bg-[#3e2723]/90 backdrop-blur px-1 py-1 md:py-2 rounded border border-[#5c4033] drop-shadow-md z-20 whitespace-nowrap" style="writing-mode: vertical-rl; text-orientation: upright; color: ${lvl.reward.colorHex}">${lvl.reward.name}</span>
+            <div class="absolute left-1/2 transform -translate-x-1/2 top-[40%] md:top-[30%] w-10 md:w-16 h-20 md:h-28 drop-shadow-[0_0_12px_rgba(139,38,38,0.8)] z-10">
+               ${swordHtml}
+            </div>
+          `;
+
+          return `
+            <div class="relative w-8 h-8 md:w-14 md:h-14 flex-shrink-0 flex items-center justify-center transition-all duration-300">
+               <div class="absolute inset-0 rounded-full border-2 transition-all duration-300
+                  ${isBroken ? 'bg-black border-[#3e2723] shadow-inner scale-50' : 'bg-[radial-gradient(circle,#8b2626,#3e2723)] border-[#8b2626] shadow-[0_0_10px_#8b2626] animate-pulse'}">
+               </div>
+               ${isBroken && !isHit ? `<div class="absolute inset-0 z-10 pointer-events-none">${swordAndTextHtml}</div>` : ''}
+            </div>
+          `;
+        }).join('');
+
+        // 魔王戰各回合的奧義動畫圖層
+        const bossClearAnimOverlay = state.levelClearAnim && state.swordFlying !== null ? `
+          <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center pointer-events-none">
+            <div class="absolute inset-0 bg-[#3e2723]/80 backdrop-blur-sm animate-pulse"></div>
+            <div class="w-48 h-72 md:w-80 md:h-[400px] animate-fly-out relative z-10 flex items-center justify-center">
+              ${bossSwordSvg}
+            </div>
+            <div class="absolute mt-64 md:mt-80 text-5xl md:text-7xl lg:text-8xl font-black italic tracking-widest font-boss-ultimate animate-pop-in z-20 whitespace-nowrap transform -rotate-3" style="color: #ffffff; text-shadow: 0 0 15px ${bossSwordColor}, 0 0 30px ${bossSwordColor}, 0 0 50px ${bossSwordColor}, 4px 6px 12px rgba(0,0,0,0.9);">
+               ${currentSkillName}
+            </div>
+          </div>
+        ` : '';
+
+        // 九劍齊發終極大招動畫圖層 (分離動畫層與定位層，強制設定 both 實現陸續飛入)
+        const finalSwordsHtml = gameData.map((lvl, idx) => {
+            const angle = (360 / 9) * idx;
+            const delay = idx * 0.2; // 每把劍間隔 0.2 秒出現
+            return `
+              <div class="absolute inset-0 flex items-start justify-center" style="transform: rotate(${angle}deg);">
+                <div style="animation: swordSeqAppear 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) ${delay}s both;">
+                  <div class="w-16 h-32 md:w-28 md:h-56 transform -translate-y-12 md:-translate-y-20 filter drop-shadow-[0_0_15px_${lvl.reward.colorHex}]">
+                    ${getSwordSvg(lvl.reward.swordType, lvl.reward.colorHex)}
+                  </div>
+                </div>
+              </div>
+            `;
+        }).join('');
+
+        const finalUltimateOverlay = state.finalUltimateAnim ? `
+          <div class="fixed inset-0 z-[200] flex flex-col items-center justify-center pointer-events-none overflow-hidden">
+            <div class="absolute inset-0 bg-[#111]/90 backdrop-blur-lg animate-pulse"></div>
+            <div class="absolute inset-0 bg-white animate-[screenFlash_0.8s_ease-out_forwards]"></div>
+
+            <!-- 徹底移除 animate-spin-slow 停止繞圈，讓劍保持在固定軌道飛入 -->
+            <div class="relative w-[320px] h-[320px] md:w-[600px] md:h-[600px] z-10">
+               ${finalSwordsHtml}
+            </div>
+
+            <!-- 終極奧義文字 (延遲 2.0 秒，等全部劍飛完再瞬間顯示，設定 both 隱藏等待期) -->
+            <div class="absolute z-20 flex flex-col items-center" style="animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 2.0s both;">
+              <div class="transform -rotate-3 flex flex-col items-center scale-110">
+                <div class="text-4xl md:text-6xl lg:text-7xl font-black italic tracking-widest font-boss-ultimate whitespace-nowrap mb-1 md:mb-2" style="color: #eaddc5; text-shadow: 0 0 15px #b8860b, 0 0 30px #8b2626, 4px 6px 10px rgba(0,0,0,0.9);">
+                  終極奧義
+                </div>
+                <div class="text-6xl md:text-8xl lg:text-9xl font-black italic tracking-widest font-boss-ultimate whitespace-nowrap" style="color: #f5d061; text-shadow: 0 0 20px #b8860b, 0 0 40px #8b2626, 0 0 60px #5c4033, 6px 8px 15px rgba(0,0,0,1);">
+                  乾坤歸位
+                </div>
+              </div>
+            </div>
+          </div>
+        ` : '';
+
+        content = `
+          <div class="min-h-screen bg-black flex flex-col items-center relative overflow-hidden pt-6 pb-36">
+            <!-- 捷徑按鈕：一擊秒殺魔王 -->
+            <div class="fixed top-2 left-2 md:top-4 md:left-4 z-[60]">
+              <button onclick="window.triggerKillShortcut()" 
+                      class="bg-[#8b2626] text-[#faf6ed] px-3 py-2 rounded shadow-md border-2 border-[#5c4033] text-xs md:text-sm font-black transition-all hover:bg-[#b8860b] hover:text-[#3e2723] active:translate-y-1">
+                🗡️ 秒殺魔王 (進入擊殺動畫)
+              </button>
+            </div>
+
+            <!-- 斬擊特效圖層 與 各種大招特效 -->
+            ${state.showSlash ? `
+              <div class="slash-screen-flash"></div>
+              <div class="slash-effect"></div>
+            ` : ''}
+            ${bossClearAnimOverlay}
+            ${finalUltimateOverlay}
+
+            <div class="fixed inset-0 z-0 pointer-events-none">
+              <img src="遊玩畫面.png" onerror="this.src='遊玩畫面.jpg'" class="w-full h-full object-cover grayscale opacity-60" />
+              <div class="absolute inset-0 bg-[#3e2723]/60 mix-blend-multiply"></div>
+            </div>
+
+            <div class="w-full max-w-4xl flex flex-col items-center relative z-10 text-[#faf6ed]">
+               
+               <div class="flex justify-center items-end flex-nowrap gap-1 md:gap-3 mt-24 md:mt-32 mb-10 md:mb-16 relative z-20 w-full px-1 max-w-5xl">
+                 ${bossHpNodesHtml}
+               </div>
+
+               <div class="relative transition-transform flex justify-center items-center z-10 ${state.bossShake ? 'animate-shake scale-110 drop-shadow-[0_0_30px_#8b2626]' : ''}">
+                  <img src="魔王.png" alt="魔王" onerror="this.src='魔王.jpg'" class="w-40 md:w-64 h-auto object-contain drop-shadow-[0_0_20px_#3e2723]" />
+               </div>
+
+               <div class="mt-4 battle-box p-3 md:p-5 w-11/12 max-w-2xl relative text-center z-20">
+                  <div class="absolute -top-4 left-6 bg-[#8b2626] text-[#faf6ed] px-3 py-1 font-black transform -rotate-2 border border-[#5c4033] shadow-sm">魔王的狂嘯</div>
+                  <div class="flex flex-col md:flex-row justify-between items-center px-2 md:px-8 mt-2 gap-2">
+                    <p class="text-sm md:text-xl lg:text-2xl font-black text-[#3e2723] whitespace-nowrap">
+                      「破解我的四重陣法！將題辭與場合配對！」
+                    </p>
+                    <div class="text-2xl md:text-4xl font-black ${state.bossTimer <= 5 ? 'text-[#8b2626] animate-pulse drop-shadow-[0_0_5px_#8b2626]' : 'text-[#3e2723]'}">
+                      ⏳ <span class="tracking-widest">${state.bossTimer}</span><span class="text-lg md:text-2xl">s</span>
+                    </div>
+                  </div>
+               </div>
+
+               <!-- 配合題區塊 (左右兩排) -->
+               <div class="flex gap-3 md:gap-8 mt-4 w-11/12 max-w-2xl ${state.isShaking ? 'animate-shake' : ''} z-40 relative">
+                  
+                  <!-- 題辭列 (左) -->
+                  <div class="flex-1 flex flex-col gap-2 md:gap-3">
+                    ${state.bossPairs.phrases.map(p => `
+                       <button onclick="handleBossItemClick('${p.id}', 'phrase')"
+                               class="relative w-full py-3 md:py-4 text-base md:text-2xl font-black border-2 transition-all rounded shadow-sm
+                               ${p.status === 'cleared' ? 'opacity-0 scale-75 pointer-events-none' : 
+                                 state.selectedBossPhrase && state.selectedBossPhrase.id === p.id 
+                                 ? 'border-[#3e2723] bg-[#8b2626] text-[#faf6ed] translate-y-1 shadow-none scale-105 z-10' 
+                                 : 'border-[#5c4033] bg-[#faf6ed] text-[#3e2723] hover:bg-[#eaddc5]'}">
+                          ${p.text}
+                       </button>
+                    `).join('')}
+                  </div>
+
+                  <!-- 場合列 (右) -->
+                  <div class="flex-1 flex flex-col gap-2 md:gap-3">
+                    ${state.bossPairs.categories.map(c => `
+                       <button onclick="handleBossItemClick('${c.id}', 'category')"
+                               class="relative w-full py-3 md:py-4 text-base md:text-2xl font-black border-2 transition-all rounded shadow-sm
+                               ${c.status === 'cleared' ? 'opacity-0 scale-75 pointer-events-none' : 
+                                 state.selectedBossCategory && state.selectedBossCategory.id === c.id 
+                                 ? 'border-[#3e2723] bg-[#b8860b] text-[#3e2723] translate-y-1 shadow-none scale-105 z-10' 
+                                 : 'border-[#5c4033] bg-[#3e2723] text-[#faf6ed] hover:bg-[#5c4033]'}">
+                          ${c.text}
+                       </button>
+                    `).join('')}
+                  </div>
+               </div>
+            </div>
+
+            <!-- 底部：英雄魂火與 9 把寶劍 -->
+            <div class="fixed bottom-0 left-0 w-full bg-[#111]/95 backdrop-blur border-t-2 border-[#5c4033] p-2 md:p-4 flex items-end justify-between z-50">
+               <!-- 英雄魂火 -->
+               <div class="flex flex-col items-center justify-center bg-[#2d1e12] border-2 border-[#8b2626] p-2 rounded-md shrink-0 shadow-md">
+                  <span class="text-[10px] md:text-sm font-black text-[#8c8273] mb-1">英雄魂火</span>
+                  <div class="flex gap-0.5 md:gap-1">
+                     ${fireHtml.join('')}
+                  </div>
+               </div>
+               
+               <!-- 玩家持有的剩餘寶劍 -->
+               <div class="flex flex-1 justify-center md:justify-around items-end gap-1 md:gap-4 pl-2 md:pl-6 pr-1 md:pr-2 w-full">
+                  ${gameData.map((lvl, i) => `
+                    <div class="flex items-end justify-center transition-all duration-500 ${i < state.currentBossQ || state.swordFlying === i ? 'hidden w-0 h-0 opacity-0 scale-0' : 'drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]'}">
+                      <div class="flex items-end gap-0.5 md:gap-1 transform hover:scale-110 transition-transform">
+                         <div class="w-6 sm:w-10 md:w-16 h-12 sm:h-16 md:h-24">${getSwordSvg(lvl.reward.swordType, lvl.reward.colorHex)}</div>
+                         <span class="text-[9px] md:text-[14px] font-calligraphy bg-[#3e2723]/90 px-0.5 md:px-1 py-1 md:py-2 rounded-sm border border-[#5c4033] mb-1 drop-shadow-md tracking-widest" style="writing-mode: vertical-rl; text-orientation: upright; color: ${lvl.reward.colorHex}">${lvl.reward.name}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+               </div>
+            </div>
+          </div>
+        `;
+
+      } else if (state.gameState === 'bossKillVideo') {
+        content = `
+          <div class="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden">
+            <video 
+              src="擊殺動畫.mp4" 
+              autoplay 
+              controls
+              playsinline
+              onended="videoEnded('kill')"
+              onerror="console.log('擊殺動畫.mp4 載入失敗，請手動點擊跳過');"
+              class="w-full h-full max-h-screen object-contain absolute inset-0 z-10"
+            ></video>
+            
+            <button onclick="videoEnded('kill')" class="absolute top-4 right-4 md:top-8 md:right-8 z-20 bg-black/60 text-white border-2 border-white px-4 py-2 font-bold text-sm md:text-base hover:bg-[#8b2626] transition-colors shadow-lg active:translate-y-1 active:shadow-none rounded">
+              跳過動畫 ⏭
+            </button>
+          </div>
+        `;
+
+      } else if (state.gameState === 'postBossReview') {
+        const allChecked = state.errorHistory.length === 0 || state.errorHistory.every(e => e.checked);
+        const uncheckedCount = state.errorHistory.filter(e => !e.checked).length;
+        
+        content = `
+          <div class="min-h-screen flex items-center justify-center p-4 md:p-8 overflow-hidden relative">
+            <div class="fixed inset-0 z-0 pointer-events-none">
+              <img src="遊玩畫面.png" alt="背景" onerror="this.src='遊玩畫面.jpg'" class="w-full h-full object-cover opacity-90" />
+            </div>
+
+            <div class="w-full max-w-7xl flex flex-col md:flex-row gap-6 md:gap-8 relative z-10 animate-pop-in h-[90vh] md:h-[85vh]">
+              
+              <!-- 左半部：戰鬥表現結算 -->
+              <div class="battle-box w-full md:w-5/12 p-6 md:p-10 flex flex-col items-center justify-center text-center shadow-2xl">
+                <div class="text-6xl mb-4 drop-shadow-md">🏅</div>
+                <h2 class="text-3xl md:text-5xl font-black mb-6 text-[#8b2626] tracking-widest border-b-2 border-[#5c4033] pb-4 w-full">
+                  修羅結算
+                </h2>
+                
+                <div class="text-2xl md:text-3xl font-black text-[#faf6ed] mb-8 bg-[#b8860b] py-6 px-4 border-2 border-[#5c4033] shadow-md transform -rotate-1 rounded w-full">
+                  最終總戰力<br><span class="text-[#3e2723] text-5xl md:text-6xl inline-block mt-3">${state.score}</span>
+                </div>
+                
+                <div class="w-full bg-[rgba(139,38,38,0.05)] p-5 border-2 border-[#5c4033] rounded text-left space-y-4 shadow-inner">
+                  <div class="flex justify-between font-bold border-b border-dashed border-[#8c8273] pb-2 text-lg">
+                    <span class="text-[#5c4033] flex items-center gap-2"><i class="ph-fill ph-sword"></i> 寶劍收集</span>
+                    <span class="text-[#8b2626] font-black">${state.clearedLevels.length} / 9把</span>
+                  </div>
+                  <div class="flex justify-between font-bold border-b border-dashed border-[#8c8273] pb-2 text-lg">
+                    <span class="text-[#5c4033] flex items-center gap-2"><i class="ph-fill ph-fire"></i> 殘存魂火</span>
+                    <span class="text-[#8b2626] font-black">${state.lives} 點</span>
+                  </div>
+                  <div class="flex justify-between font-bold text-lg">
+                    <span class="text-[#5c4033] flex items-center gap-2"><i class="ph-fill ph-warning-circle"></i> 修練破綻</span>
+                    <span class="text-[#8b2626] font-black">${state.errorHistory.length} 次</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 右半部：敗北紀錄清單 -->
+              <div class="battle-box w-full md:w-7/12 p-6 md:p-8 flex flex-col relative shadow-2xl">
+                <h3 class="text-2xl md:text-3xl font-black text-[#3e2723] mb-4 pb-4 border-b-2 border-[#5c4033] flex items-center justify-between shrink-0">
+                  <span class="flex items-center gap-3"><i class="ph-fill ph-scroll text-[#8b2626] text-4xl"></i> 英雄旅程回憶</span>
+                  ${state.errorHistory.length > 0 ? `
+                    <span id="unchecked-count" class="text-sm md:text-base font-bold bg-[#8b2626] text-[#faf6ed] px-3 py-1.5 rounded shadow-sm" style="display: ${uncheckedCount > 0 ? 'inline-block' : 'none'}">
+                      待確認: ${uncheckedCount}
+                    </span>
+                  ` : ''}
+                </h3>
+                
+                ${state.errorHistory.length > 0 ? `
+                  <div class="text-sm md:text-base font-bold text-[#5c4033] mb-4 shrink-0 bg-[#faf6ed] p-2 rounded border border-[#8c8273]">
+                    👉 請仔細閱讀解析，確認領悟後請將右側方塊打勾。
+                  </div>
+                ` : ''}
+
+                <!-- 新增 ID 讓系統記住滾動條位置 -->
+                <div id="review-list-container" class="flex-1 overflow-y-auto pr-3 space-y-2 custom-scrollbar">
+                  ${state.errorHistory.length === 0 
+                    ? '<div class="h-full flex flex-col items-center justify-center text-center"><i class="ph-fill ph-star text-6xl text-[#b8860b] mb-4 drop-shadow-md"></i><p class="text-2xl md:text-3xl font-black text-[#8b2626]">完美通關！<br>國學造詣深不可測！</p></div>' 
+                    : renderErrorItems()}
+                </div>
+
+                <div id="final-action-btn-container" class="shrink-0 mt-4 pt-4 border-t-2 border-[#5c4033]">
+                  ${allChecked 
+                    ? `<button onclick="setState({gameState: 'endingVideo', errorHistory: []})" class="w-full bg-[#b8860b] hover:bg-[#3e2723] hover:text-[#faf6ed] text-[#3e2723] py-4 px-6 text-xl md:text-2xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded animate-pulse">
+                         回憶完成，觀看結局 ⏭
+                       </button>`
+                    : `<button disabled class="w-full bg-[#eaddc5] text-[#8c8273] py-4 px-6 text-xl md:text-2xl font-black border-2 border-[#8c8273] shadow-none cursor-not-allowed rounded flex items-center justify-center gap-2">
+                         <i class="ph-bold ph-lock"></i> 請先打勾確認所有回憶
+                       </button>`
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else if (state.gameState === 'endingVideo') {
+        content = `
+          <div class="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden">
+            <video 
+              src="結局動畫.mp4" 
+              autoplay 
+              controls
+              playsinline
+              onended="videoEnded('ending')"
+              onerror="console.log('結局動畫.mp4 載入失敗，請手動點擊跳過');"
+              class="w-full h-full max-h-screen object-contain absolute inset-0 z-10"
+            ></video>
+            
+            <button onclick="videoEnded('ending')" class="absolute top-4 right-4 md:top-8 md:right-8 z-20 bg-black/60 text-white border-2 border-white px-4 py-2 font-bold text-sm md:text-base hover:bg-[#8b2626] transition-colors shadow-lg active:translate-y-1 active:shadow-none rounded">
+              跳過動畫 ⏭
+            </button>
+          </div>
+        `;
+
+      } else if (state.gameState === 'victory') {
+        content = `
+          <div class="min-h-screen bg-[#111] flex flex-col items-center justify-center p-4 relative overflow-hidden" onclick="activateIntroMusic()">
+            <div class="fixed inset-0 z-0 pointer-events-none">
+              <img src="結局畫面.png" alt="結局背景" onerror="this.src='結局畫面.jpg'" class="w-full h-full object-cover opacity-40 blur-sm" />
+            </div>
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 z-0">
+              <div class="w-full h-full max-w-3xl max-h-[800px] bg-[radial-gradient(circle,rgba(184,134,11,0.6)_0%,transparent_70%)] animate-pulse-ray"></div>
+            </div>
+
+            <div class="battle-box max-w-md w-full p-8 md:p-10 text-center z-20 mt-4 animate-pop-in cursor-default" onclick="event.stopPropagation()">
+              <h2 class="text-4xl md:text-6xl font-black mb-4 text-[#8b2626] tracking-widest leading-tight">
+                題辭歸一
+              </h2>
+              <p class="font-bold text-xl md:text-2xl text-[#3e2723] mb-6 border-b-2 border-[#5c4033] pb-4">
+                題辭英雄就是你！
+              </p>
+              
+              <div class="text-2xl md:text-3xl font-black text-[#faf6ed] mb-8 bg-[#b8860b] py-3 border-2 border-[#5c4033] shadow-md transform -rotate-1 rounded">
+                最終戰力: <span class="text-[#3e2723]">${state.score}</span>
+              </div>
+              
+              <div class="flex flex-col gap-4">
+                ${state.errorHistory.length > 0 ? `
+                  <button onclick="setState({showReviewModal: true})" class="w-full bg-[#8b2626] hover:bg-[#3e2723] text-[#faf6ed] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded">
+                    <i class="ph-bold ph-scroll text-2xl"></i> 檢視旅程回憶
+                  </button>
+                ` : ''}
+
+                <button onclick="setState({clearedLevels: [], score: 0, recentlyCleared: null, playerName: '', gameState: 'intro'})" 
+                        class="w-full bg-[#3e2723] hover:bg-[#b8860b] hover:text-[#3e2723] text-[#faf6ed] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded">
+                  <i class="ph-bold ph-arrows-clockwise text-2xl"></i> 重新開啟輪迴
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else if (['gameover', 'transition'].includes(state.gameState)) {
+        const isWin = state.gameState !== 'gameover';
+        const lastClearedIdx = Math.min(state.recentlyCleared !== null ? state.recentlyCleared : state.currentLevel, gameData.length - 1);
+        const rwd = gameData[lastClearedIdx]?.reward;
+        
+        content = `
+          <div class="min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden relative">
+            <div class="fixed inset-0 z-0 pointer-events-none">
+              <img src="遊玩畫面.png" alt="背景" onerror="this.src='遊玩畫面.jpg'" class="w-full h-full object-cover opacity-90" />
+            </div>
+
+            <div class="battle-box max-w-md w-full p-6 md:p-10 text-center relative z-10">
+              
+              <div class="flex justify-center -mt-28 md:-mt-40 -mb-20 md:-mb-32 pointer-events-none relative z-0">
+                ${isWin && rwd ? `
+                  <div class="w-[400px] h-[400px] md:w-[600px] md:h-[600px] transform rotate-[15deg] drop-shadow-[0_15px_25px_rgba(0,0,0,0.5)]">
+                    ${getSwordSvg(rwd.swordType, rwd.colorHex)}
+                  </div>
+                ` : '<div class="text-7xl mt-28 mb-20 drop-shadow-md">💀</div>'}
+              </div>
+              
+              <h2 class="text-3xl md:text-4xl font-black mb-2 relative z-10 ${isWin ? 'text-[#3e2723]' : 'text-[#8b2626]'}">
+                ${isWin ? '陣法突破！' : '討伐失敗...'}
+              </h2>
+              <p class="font-bold text-base md:text-lg text-[#5c4033] mb-4 relative z-10">
+                ${isWin && rwd ? `恭喜獲得寶劍：<span class="font-black text-xl md:text-2xl block mt-1 font-calligraphy tracking-widest" style="color: ${rwd.colorHex}">【${rwd.name}】</span>` : '修行不足，請檢討後再戰！'}
+              </p>
+              
+              ${isWin && state.lastLevelStats ? `
+                <div class="bg-[rgba(250,246,237,0.8)] p-4 border-2 border-[#5c4033] mb-6 text-left w-full mx-auto shadow-inner relative z-10 rounded">
+                  <div class="flex justify-between items-center font-bold border-b border-dashed border-[#8c8273] pb-2 mb-2">
+                    <span class="text-[#5c4033] flex items-center gap-1"><i class="ph-bold ph-clock text-[#3e2723]"></i> 通關耗時 (${state.lastLevelStats.timeTaken}s)</span>
+                    <span class="text-[#b8860b]">+${state.lastLevelStats.timeBonus}</span>
+                  </div>
+                  <div class="flex justify-between items-center font-bold border-b border-dashed border-[#8c8273] pb-2 mb-2">
+                    <span class="text-[#5c4033] flex items-center gap-1"><i class="ph-bold ph-fire text-[#8b2626]"></i> 殘餘魂火 (${state.lives}點)</span>
+                    <span class="text-[#b8860b]">+${state.lastLevelStats.lifeBonus}</span>
+                  </div>
+                  <div class="flex justify-between items-center font-black text-lg md:text-xl pt-1">
+                    <span class="text-[#3e2723]">陣法戰力追加</span>
+                    <span class="text-[#8b2626]">+${state.lastLevelStats.levelTotalBonus}</span>
+                  </div>
+                </div>
+              ` : ''}
+
+              <div class="text-2xl md:text-3xl font-black text-[#faf6ed] mb-8 bg-[#b8860b] py-2 border-2 border-[#5c4033] shadow-md transform -rotate-1 relative z-10 rounded">
+                累積戰力: <span class="text-[#3e2723] ml-1">${state.score}</span>
+              </div>
+              
+              <div class="flex flex-col gap-4 relative z-10">
+                ${state.errorHistory.length > 0 ? `
+                  <button onclick="setState({showReviewModal: true})" class="w-full bg-[#8b2626] hover:bg-[#3e2723] text-[#faf6ed] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded">
+                    <i class="ph-bold ph-scroll text-2xl"></i> 檢視旅程回憶
+                  </button>
+                ` : ''}
+
+                ${isWin && state.clearedLevels.length === gameData.length ? `
+                  <div id="transition-boss-btn-container" class="w-full">
+                    ${uncheckedCountGlobal > 0 ? `
+                      <button disabled class="w-full bg-[#eaddc5] text-[#8c8273] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#8c8273] shadow-none cursor-not-allowed rounded flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-lock"></i> 勾選完回憶方可挑戰魔王
+                      </button>
+                    ` : `
+                      <button onclick="setState({gameState: 'bossIntro'})" class="w-full bg-[#8b2626] text-[#faf6ed] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 animate-pulse rounded">
+                        ⚔️ 迎戰亂字魔王！
+                      </button>
+                    `}
+                  </div>
+                ` : `
+                  <button onclick="setState({gameState: state.isBossMode ? 'bossIntro' : 'start'})" class="w-full bg-[#b8860b] hover:bg-[#3e2723] hover:text-[#faf6ed] text-[#3e2723] py-3 px-6 text-lg md:text-xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2 rounded">
+                    ${state.isBossMode ? '<i class="ph-bold ph-sword text-2xl"></i> 重新挑戰魔王' : '撤退回修羅場'}
+                  </button>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+
+      } else if (state.gameState === 'playing') {
+        const levelData = gameData[state.currentLevel];
+        const half = Math.ceil(levelData.options.length / 2);
+        const leftBaskets = levelData.options.slice(0, half);
+        const rightBaskets = levelData.options.slice(half);
+
+        const currentElapsed = state.levelStartTime ? Math.floor((Date.now() - state.levelStartTime) / 1000) : 0;
+
+        const renderBasketHTML = (cat) => {
+          const droppedPhrases = state.phrases.filter(p => p.status === 'dropped' && p.droppedCat === cat);
+          const droppedHtml = droppedPhrases.map(p => `
+            <div class="text-xs md:text-sm bg-[#3e2723] text-[#faf6ed] px-2 py-1 border border-[#b8860b] font-black text-center w-full shadow-sm whitespace-nowrap rounded-sm">
+              ${p.q}
+            </div>
+          `).join('');
+
+          return `
+            <div ondragover="allowDrop(event)" ondrop="handleDrop(event, '${cat}')" onclick="clickCategory('${cat}')" class="category-basket flex flex-col items-center justify-start p-2 md:p-3 cursor-pointer ${state.activePhraseId ? 'highlight' : ''}">
+              <div class="text-[14px] md:text-xl font-black text-[#3e2723] text-center leading-tight mb-2 border-b-2 border-[#5c4033] pb-1 w-full whitespace-nowrap">${cat}</div>
+              <div class="w-full flex flex-col gap-1.5">
+                ${droppedHtml}
+              </div>
+            </div>
+          `;
+        };
+
+        const previewCharsHtml = [0,1,2,3].map(i => {
+          const charObj = state.selectedChars[i];
+          return `
+            <div ${charObj ? `onclick="handleCharAction('${charObj.id}')"` : ''} class="w-10 h-10 md:w-14 md:h-14 rounded border-2 flex items-center justify-center text-xl md:text-3xl font-black transition-all ${charObj ? 'border-[#5c4033] bg-[#3e2723] text-[#faf6ed] cursor-pointer hover:bg-[#8b2626] shadow-sm' : 'border-[#8c8273] bg-[rgba(250,246,237,0.5)] text-transparent'}">
+              ${charObj ? charObj.char : ''}
+            </div>
+          `;
+        }).join('');
+
+        const pendingPhrase = state.phrases.find(p => p.status === 'draggable');
+
+        const gridHtml = state.boardChars.map(c => `
+          <button onclick="handleCharAction('${c.id}')" ${c.status === 'hidden' || state.isShaking || state.isVerifying || pendingPhrase ? 'disabled' : ''} class="aspect-square text-2xl md:text-3xl font-black flex items-center justify-center ${c.status === 'hidden' ? 'opacity-0 pointer-events-none' : ''} ${c.status === 'selected' ? 'char-btn selected' : 'char-btn'}">
+            ${c.char}
+          </button>
+        `).join('');
+
+        const errorOverlay = state.learningError ? `
+          <div class="fixed inset-0 bg-[#111]/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div class="battle-box max-w-md w-full p-6 md:p-10 text-center animate-shake border-2 border-[#8b2626]">
+              <i class="ph-fill ph-warning text-6xl md:text-7xl text-[#8b2626] mb-4 drop-shadow-md"></i>
+              <h2 class="text-3xl md:text-4xl font-black text-[#8b2626] mb-2 tracking-widest">破綻百出！</h2>
+              <p class="text-lg md:text-xl font-bold text-[#3e2723] mb-6">此招不可用於「${state.learningError.wrongAns}」</p>
+              
+              <div class="bg-[rgba(139,38,38,0.05)] p-4 md:p-6 mb-8 border border-[#5c4033] rounded">
+                <div class="text-sm md:text-base text-[#5c4033] font-bold mb-3 border-b border-[#5c4033] pb-2">銘記於心，真正的奧義是：</div>
+                <div class="text-2xl md:text-3xl font-black text-[#3e2723] mb-4 leading-tight">
+                  「<span class="text-[#8b2626] text-3xl md:text-4xl">${state.learningError.phrase}</span>」<br/>
+                  <div class="text-lg mt-3 mb-1 text-[#5c4033]">適用於</div>
+                  <div class="text-[#faf6ed] text-xl md:text-2xl bg-[#3e2723] px-3 py-1.5 border-l-4 border-[#b8860b] inline-block max-w-full break-words shadow-md">
+                    【${state.learningError.correctAns}】
+                  </div>
+                </div>
+                <div class="text-sm md:text-base text-left text-[#3e2723] pt-3 border-t border-dashed border-[#5c4033]">
+                  <i class="ph-bold ph-book-open text-[#8b2626] mr-1"></i> 
+                  <b>解析：</b>${phraseDict[state.learningError.phrase] || `此為祝賀/哀輓之辭。`}
+                </div>
+              </div>
+              <button onclick="dismissLearningError()" class="w-full bg-[#3e2723] text-[#faf6ed] hover:bg-[#8b2626] py-4 text-xl md:text-2xl font-black border-2 border-[#5c4033] shadow-md active:translate-y-1 active:shadow-none transition-all rounded">
+                領悟！
+              </button>
+            </div>
+          </div>
+        ` : '';
+
+        // 更新：加上傾斜(italic)與微旋轉展現動態感
+        const levelClearAnimOverlay = state.levelClearAnim && levelData.reward ? `
+          <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center pointer-events-none">
+            <div class="absolute inset-0 bg-[#3e2723]/80 backdrop-blur-sm animate-pulse"></div>
+            <div class="w-48 h-72 md:w-80 md:h-[400px] animate-fly-out relative z-10 flex items-center justify-center">
+              ${getSwordSvg(levelData.reward.swordType, levelData.reward.colorHex)}
+            </div>
+            <div class="absolute mt-64 md:mt-80 text-5xl md:text-7xl font-bold italic tracking-widest font-calligraphy animate-pop-in z-20 transform -rotate-2" style="color: #ffffff; text-shadow: 0 0 15px ${levelData.reward.colorHex}, 0 0 30px ${levelData.reward.colorHex}, 0 0 50px ${levelData.reward.colorHex}, 4px 6px 12px rgba(0,0,0,0.9);">
+               陣法突破
+            </div>
+          </div>
+        ` : '';
+
+        content = `
+          ${errorOverlay}
+          ${levelClearAnimOverlay}
+          <div class="min-h-screen flex flex-col items-center py-4 md:py-6 px-1 md:px-4 relative">
+            <div class="fixed inset-0 z-0 pointer-events-none">
+              <img src="遊玩畫面.png" alt="背景" onerror="this.src='遊玩畫面.jpg'" class="w-full h-full object-cover opacity-90" />
+            </div>
+
+            <div class="w-full max-w-5xl flex justify-between items-center mb-6 battle-box px-4 py-3 md:px-6 md:py-4 mx-2 relative z-10">
+              <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                <button onclick="enterMap(event)" class="text-sm md:text-base font-bold text-[#5c4033] hover:text-[#faf6ed] hover:bg-[#3e2723] bg-[rgba(250,246,237,0.8)] px-4 py-1.5 border border-[#5c4033] transition-colors flex items-center gap-1 self-start rounded shadow-sm">
+                  <i class="ph-bold ph-arrow-u-up-left"></i> 撤退
+                </button>
+                <h2 class="text-base md:text-2xl font-black tracking-widest text-[#3e2723]">${levelData.levelName}</h2>
+              </div>
+              <div class="flex flex-col items-end gap-1">
+                <div class="flex gap-1 bg-[#3e2723] px-2 py-1 rounded shadow-inner">
+                  ${fireHtml.join('')}
+                </div>
+                <div class="flex gap-3 md:gap-4 mt-1">
+                  <div class="font-black text-[#3e2723] text-base md:text-xl border-b-2 border-[#5c4033] flex items-center gap-1">
+                    <i class="ph-bold ph-clock text-[#5c4033]"></i> <span id="level-timer">${currentElapsed}</span>s
+                  </div>
+                  <div class="font-black text-[#3e2723] text-base md:text-xl border-b-2 border-[#8b2626]">戰力: <span class="text-[#8b2626]">${state.score}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="w-full max-w-5xl flex flex-row justify-center items-start gap-2 md:gap-6 px-1 md:px-0 relative z-10">
+              
+              <div class="flex flex-col gap-3 md:gap-4 flex-shrink-0">
+                ${leftBaskets.map(cat => renderBasketHTML(cat)).join('')}
+              </div>
+
+              <div class="battle-box flex-1 min-w-[180px] max-w-[440px] p-3 md:p-8 relative">
+                <div class="text-center text-xs md:text-sm font-bold text-[#5c4033] mb-4 bg-[rgba(139,38,38,0.05)] py-1 rounded">💡 點擊上方預覽框可取消符印</div>
+                
+                <div class="flex justify-center gap-2 md:gap-4 mb-6 md:mb-8 min-h-[44px] md:min-h-[60px]">
+                  ${previewCharsHtml}
+                </div>
+
+                <div class="relative w-full min-h-[220px] md:min-h-[320px]">
+                  <div class="grid grid-cols-4 gap-2 md:gap-4 mx-auto px-1 md:px-0 transition-all duration-300 ${pendingPhrase ? 'opacity-30 pointer-events-none grayscale-[50%]' : ''}">
+                    ${gridHtml}
+                  </div>
+
+                  ${pendingPhrase ? `
+                    <div class="absolute inset-0 flex items-center justify-center z-20">
+                      <div class="bg-[rgba(250,246,237,0.95)] backdrop-blur-sm p-6 md:p-10 border-2 border-[#b8860b] flex flex-col items-center animate-pop-in w-11/12 max-w-[340px] shadow-lg rounded">
+                        <div class="text-[#5c4033] font-bold mb-6 text-sm md:text-base border-b border-dashed border-[#8c8273] pb-2">👆 奧義鎖定，點擊兩側陣法歸位</div>
+                        <div class="phrase-block px-6 py-4 md:px-10 md:py-6 text-3xl md:text-5xl font-black transform scale-110 tracking-widest">
+                          ${pendingPhrase.q}
+                        </div>
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-3 md:gap-4 flex-shrink-0">
+                ${rightBaskets.map(cat => renderBasketHTML(cat)).join('')}
+              </div>
+
+            </div>
+          </div>
+        `;
+      }
+
+      app.innerHTML = musicBtn + content + reviewModalHTML;
+
+      if (state.showReviewModal) {
+        const newModalContainer = document.getElementById('review-modal-container');
+        if (newModalContainer) newModalContainer.scrollTop = savedScrollTop;
+      }
+      
+      // 新增：恢復結算清單的滾動位置
+      if (state.gameState === 'postBossReview') {
+        const newListContainer = document.getElementById('review-list-container');
+        if (newListContainer) newListContainer.scrollTop = savedListScrollTop;
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
